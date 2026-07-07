@@ -11,27 +11,30 @@ use Illuminate\Support\Facades\Auth;
 
 class AtencionDiariaController extends Controller
 {
+    private array $conceptosAutomaticos = [
+        19 => [1, 18],
+        44 => [20, 43],
+    ];
+
     public function index(Request $request)
     {
-        $anio = $request->anio ?? date('Y');
-        $mes = $request->mes ?? date('m');
+        $anio = (int) ($request->anio ?? date('Y'));
+        $mes = (int) ($request->mes ?? date('n'));
 
         $medicos = Medico::where('activo', true)->orderBy('nombre')->get();
-
         $medicoId = $request->medico_id ?? $medicos->first()?->id;
 
         $conceptos = Concepto::where('activo', true)
             ->orderBy('orden')
-            ->orderBy('nombre')
             ->get();
 
         $diasMes = Carbon::create($anio, $mes, 1)->daysInMonth;
 
-        $fechaInicio = Carbon::create($anio, $mes, 1)->startOfMonth()->toDateString();
-        $fechaFin = Carbon::create($anio, $mes, 1)->endOfMonth()->toDateString();
+        $inicio = Carbon::create($anio, $mes, 1)->startOfMonth()->toDateString();
+        $fin = Carbon::create($anio, $mes, 1)->endOfMonth()->toDateString();
 
         $registros = AtencionDiaria::where('medico_id', $medicoId)
-            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+            ->whereBetween('fecha', [$inicio, $fin])
             ->get()
             ->keyBy(function ($item) {
                 return $item->concepto_id . '_' . $item->fecha->format('j');
@@ -48,38 +51,89 @@ class AtencionDiariaController extends Controller
         ));
     }
 
-    public function guardar(Request $request)
+    public function guardarCelda(Request $request)
     {
         $request->validate([
             'medico_id' => ['required', 'exists:medicos,id'],
-            'anio' => ['required', 'integer', 'min:2020', 'max:2100'],
+            'concepto_id' => ['required', 'exists:conceptos,id'],
+            'anio' => ['required', 'integer'],
             'mes' => ['required', 'integer', 'min:1', 'max:12'],
-            'datos' => ['nullable', 'array'],
+            'dia' => ['required', 'integer', 'min:1', 'max:31'],
+            'cantidad' => ['required', 'integer', 'min:0'],
         ]);
 
-        foreach ($request->datos ?? [] as $conceptoId => $dias) {
-            foreach ($dias as $dia => $cantidad) {
-                $cantidad = (int) $cantidad;
+        $concepto = Concepto::findOrFail($request->concepto_id);
 
-                $fecha = Carbon::create($request->anio, $request->mes, $dia)->toDateString();
-
-                AtencionDiaria::updateOrCreate(
-                    [
-                        'medico_id' => $request->medico_id,
-                        'concepto_id' => $conceptoId,
-                        'fecha' => $fecha,
-                    ],
-                    [
-                        'cantidad' => $cantidad,
-                        'user_id' => Auth::id(),
-                    ]
-                );
-            }
+        if (array_key_exists((int) $concepto->orden, $this->conceptosAutomaticos)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este concepto es automático y no se puede editar manualmente.',
+            ], 422);
         }
+
+        $fecha = Carbon::create($request->anio, $request->mes, $request->dia)->toDateString();
+
+        AtencionDiaria::updateOrCreate(
+            [
+                'medico_id' => $request->medico_id,
+                'concepto_id' => $request->concepto_id,
+                'fecha' => $fecha,
+            ],
+            [
+                'cantidad' => $request->cantidad,
+                'user_id' => Auth::id(),
+            ]
+        );
+
+        $automaticos = $this->recalcularAutomaticos($request->medico_id, $fecha);
 
         return response()->json([
             'success' => true,
-            'message' => 'Registro mensual guardado correctamente.',
+            'message' => 'Celda guardada.',
+            'automaticos' => $automaticos,
         ]);
+    }
+
+    private function recalcularAutomaticos($medicoId, $fecha): array
+    {
+        $respuesta = [];
+
+        foreach ($this->conceptosAutomaticos as $ordenTotal => [$desde, $hasta]) {
+            $conceptoTotal = Concepto::where('orden', $ordenTotal)->first();
+
+            if (!$conceptoTotal) {
+                continue;
+            }
+
+            $conceptosBase = Concepto::whereBetween('orden', [$desde, $hasta])
+                ->pluck('id');
+
+            $total = AtencionDiaria::where('medico_id', $medicoId)
+                ->where('fecha', $fecha)
+                ->whereIn('concepto_id', $conceptosBase)
+                ->sum('cantidad');
+
+            AtencionDiaria::updateOrCreate(
+                [
+                    'medico_id' => $medicoId,
+                    'concepto_id' => $conceptoTotal->id,
+                    'fecha' => $fecha,
+                ],
+                [
+                    'cantidad' => $total,
+                    'user_id' => Auth::id(),
+                ]
+            );
+
+            $dia = Carbon::parse($fecha)->format('j');
+
+            $respuesta[] = [
+                'concepto_id' => $conceptoTotal->id,
+                'dia' => $dia,
+                'cantidad' => $total,
+            ];
+        }
+
+        return $respuesta;
     }
 }

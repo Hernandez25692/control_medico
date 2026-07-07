@@ -6,6 +6,7 @@ use App\Http\Controllers\MedicoController;
 use App\Http\Controllers\ConceptoController;
 use App\Http\Controllers\AtencionDiariaController;
 
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -34,8 +35,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/atenciones-diarias', [AtencionDiariaController::class, 'index'])
         ->name('atenciones-diarias.index');
 
-    Route::post('/atenciones-diarias/guardar', [AtencionDiariaController::class, 'guardar'])
-        ->name('atenciones-diarias.guardar');
+    Route::post('/atenciones-diarias/guardar-celda', [AtencionDiariaController::class, 'guardarCelda'])
+        ->name('atenciones-diarias.guardar-celda');
 });
 
 require __DIR__ . '/auth.php';
