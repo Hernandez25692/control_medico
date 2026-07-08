@@ -1,47 +1,65 @@
 <x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    <form method="POST" action="{{ route('login') }}">
-        @csrf
+    <div class="medical-login">
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        <div class="medical-header">
+            <div class="medical-icon">
+                <span>✚</span>
+            </div>
+
+            <h1>Sistema de Atenciones Médicas</h1>
+            <p>Control diario, reportes y gestión clínica administrativa</p>
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+        <x-auth-session-status class="mb-4" :status="session('status')" />
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
+        <form method="POST" action="{{ route('login') }}" class="medical-form">
+            @csrf
 
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+            <div class="field-group">
+                <label for="email">Correo Electrónico</label>
+                <div class="field-box">
+                    <span>👤</span>
+                    <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
+                        autocomplete="username" placeholder="usuario@correo.com">
+                </div>
+                <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            </div>
+
+            <div class="field-group">
+                <label for="password">Contraseña</label>
+                <div class="field-box">
+                    <span>🔒</span>
+                    <input id="password" type="password" name="password" required autocomplete="current-password"
+                        placeholder="Ingrese su contraseña">
+                </div>
+                <x-input-error :messages="$errors->get('password')" class="mt-2" />
+            </div>
+
+            <div class="medical-options">
+                <label>
+                    <input type="checkbox" name="remember">
+                    Recordarme
+                </label>
+
+                @if (Route::has('password.request'))
+                    <a href="{{ route('password.request') }}">
+                        ¿Olvidó su contraseña?
+                    </a>
+                @endif
+            </div>
+
+            <button type="submit" class="medical-btn">
+                Ingresar al Sistema
+            </button>
+        </form>
+
+        <div class="medical-footer">
+            Sistema de Control de Atenciones Médicas v1.0<br>
+            © {{ date('Y') }}<br>
+            <strong>Desarrollado por José Hernández</strong>
         </div>
 
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
-            </label>
-        </div>
+    </div>
 
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
-
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
-        </div>
-    </form>
 </x-guest-layout>

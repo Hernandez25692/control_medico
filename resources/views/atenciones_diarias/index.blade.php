@@ -363,7 +363,7 @@
                     let totalPacientes = sumarRango(dia, 1, 18);
                     setValorAutomatico(19, dia, totalPacientes);
 
-                    let totalMenores = sumarRango(dia, 20, 43);
+                    let totalMenores = sumarRango(dia, 45, 50);
                     setValorAutomatico(44, dia, totalMenores);
                 }
             }
@@ -405,18 +405,13 @@
 
                 $('.total-dia').each(function() {
                     let dia = $(this).data('dia');
-                    let totalDia = 0;
 
-                    $('.cantidad-dia[data-dia="' + dia + '"]').each(function() {
-                        let orden = parseInt($(this).data('orden'));
+                    let totalPacientes = parseInt(
+                        $('.cantidad-dia[data-orden="19"][data-dia="' + dia + '"]').val()
+                    ) || 0;
 
-                        if (orden !== 19 && orden !== 44) {
-                            totalDia += parseInt($(this).val()) || 0;
-                        }
-                    });
-
-                    $(this).text(totalDia);
-                    granTotal += totalDia;
+                    $(this).text(totalPacientes);
+                    granTotal += totalPacientes;
                 });
 
                 $('#granTotal').text(granTotal);

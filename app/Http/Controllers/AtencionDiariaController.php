@@ -13,7 +13,7 @@ class AtencionDiariaController extends Controller
 {
     private array $conceptosAutomaticos = [
         19 => [1, 18],
-        44 => [20, 43],
+        44 => [45, 50],
     ];
 
     public function index(Request $request)

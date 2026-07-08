@@ -8,14 +8,18 @@ use App\Http\Controllers\AtencionDiariaController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ConsolidadoMensualController;
 use App\Http\Controllers\ConsolidadoAnualController;
+use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\DashboardController;
+
+
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified', 'permission:dashboard'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified', 'permission:dashboard'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -56,4 +60,13 @@ Route::middleware(['auth', 'permission:reportes.ver'])->group(function () {
         ->name('consolidado-anual.index');
 });
 
+
+
+Route::middleware(['auth', 'permission:reportes.ver'])->group(function () {
+    Route::get('/reportes', [ReporteController::class, 'index'])
+        ->name('reportes.index');
+
+    Route::get('/reportes/exportar', [ReporteController::class, 'exportar'])
+        ->name('reportes.exportar');
+});
 require __DIR__ . '/auth.php';

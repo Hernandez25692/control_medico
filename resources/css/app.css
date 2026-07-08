@@ -1,3 +1,227 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.medical-page {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    background: linear-gradient(135deg, #0f766e, #064e3b);
+    position: relative;
+    overflow: hidden;
+}
+
+.medical-bg-shape {
+    position: absolute;
+    border-radius: 50%;
+    opacity: .18;
+    background: #ffffff;
+}
+
+.shape-one {
+    width: 420px;
+    height: 420px;
+    top: -120px;
+    left: -120px;
+}
+
+.shape-two {
+    width: 330px;
+    height: 330px;
+    bottom: -100px;
+    right: -90px;
+}
+
+.medical-left {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 70px;
+    color: white;
+    z-index: 2;
+}
+
+.medical-brand {
+    max-width: 560px;
+}
+
+.brand-icon {
+    width: 95px;
+    height: 95px;
+    background: rgba(255, 255, 255, .18);
+    border: 2px solid rgba(255, 255, 255, .35);
+    border-radius: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 54px;
+    margin-bottom: 28px;
+}
+
+.medical-brand h2 {
+    font-size: 50px;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 18px;
+}
+
+.medical-brand p {
+    font-size: 18px;
+    color: #d1fae5;
+    line-height: 1.6;
+}
+
+.medical-list {
+    margin-top: 30px;
+    display: grid;
+    gap: 14px;
+    color: #ecfdf5;
+    font-size: 16px;
+}
+
+.medical-right {
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 45px;
+    z-index: 2;
+}
+
+.medical-login {
+    width: 100%;
+    max-width: 440px;
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 42px;
+    box-shadow: 0 25px 70px rgba(15, 23, 42, .22);
+}
+
+.medical-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.medical-icon {
+    width: 82px;
+    height: 82px;
+    margin: 0 auto 20px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #0f766e, #10b981);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 42px;
+    box-shadow: 0 14px 30px rgba(16, 185, 129, .35);
+}
+
+.medical-header h1 {
+    color: #064e3b;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.medical-header p {
+    color: #64748b;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.field-group {
+    margin-bottom: 18px;
+}
+
+.field-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 8px;
+}
+
+.field-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f1f5f9;
+    border: 1px solid #dbe3ea;
+    border-radius: 14px;
+    padding: 0 14px;
+}
+
+.field-box input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 14px 0;
+    outline: none;
+    color: #0f172a;
+}
+
+.medical-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 18px 0 24px;
+    font-size: 14px;
+}
+
+.medical-options label {
+    color: #64748b;
+}
+
+.medical-options a {
+    color: #0f766e;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.medical-btn {
+    width: 100%;
+    border: none;
+    border-radius: 14px;
+    padding: 15px;
+    background: linear-gradient(135deg, #0f766e, #10b981);
+    color: white;
+    font-weight: 800;
+    cursor: pointer;
+    transition: .25s;
+}
+
+.medical-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(16, 185, 129, .35);
+}
+
+.medical-footer {
+    text-align: center;
+    margin-top: 26px;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.medical-footer strong {
+    color: #065f46;
+}
+
+@media (max-width: 900px) {
+    .medical-page {
+        grid-template-columns: 1fr;
+    }
+
+    .medical-left {
+        display: none;
+    }
+
+    .medical-right {
+        min-height: 100vh;
+    }
+}
