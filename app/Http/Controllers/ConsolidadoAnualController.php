@@ -6,6 +6,7 @@ use App\Models\AtencionDiaria;
 use App\Models\Concepto;
 use App\Models\Medico;
 use Illuminate\Http\Request;
+use App\Models\Periodo;
 
 class ConsolidadoAnualController extends Controller
 {
@@ -43,6 +44,10 @@ class ConsolidadoAnualController extends Controller
             ->get()
             ->keyBy(fn($item) => $item->concepto_id . '_' . $item->mes);
 
+        $cerrados = Periodo::where('anio', $anio)
+            ->where('cerrado', true)
+            ->count();
+
         return view('consolidados.anual', compact(
             'anio',
             'tipo',
@@ -50,7 +55,8 @@ class ConsolidadoAnualController extends Controller
             'medicos',
             'registrosResumen',
             'registrosPorMedico',
-            'registrosDetalle'
+            'registrosDetalle',
+            'cerrados'
         ));
     }
 }

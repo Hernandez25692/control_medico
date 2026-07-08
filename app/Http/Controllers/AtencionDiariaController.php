@@ -8,6 +8,7 @@ use App\Models\Medico;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Periodo;
 
 class AtencionDiariaController extends Controller
 {
@@ -46,7 +47,15 @@ class AtencionDiariaController extends Controller
             ->keyBy(function ($item) {
                 return $item->concepto_id . '_' . $item->fecha->format('j');
             });
-
+        $periodo = Periodo::firstOrCreate(
+            [
+                'anio' => $anio,
+                'mes' => $mes,
+            ],
+            [
+                'cerrado' => false,
+            ]
+        );
         return view('atenciones_diarias.index', compact(
             'anio',
             'mes',
@@ -54,7 +63,8 @@ class AtencionDiariaController extends Controller
             'medicoId',
             'conceptos',
             'diasMes',
-            'registros'
+            'registros',
+            'periodo'
         ));
     }
 
@@ -68,6 +78,16 @@ class AtencionDiariaController extends Controller
             'dia' => ['required', 'integer', 'min:1', 'max:31'],
             'cantidad' => ['required', 'integer', 'min:0'],
         ]);
+        $periodo = Periodo::where('anio', $request->anio)
+            ->where('mes', $request->mes)
+            ->first();
+
+        if ($periodo && $periodo->cerrado && Auth::user()->hasRole('Medico')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este período está cerrado. No puede modificar registros.',
+            ], 423);
+        }
         $user = Auth::user();
 
         if ($user->hasRole('Medico')) {

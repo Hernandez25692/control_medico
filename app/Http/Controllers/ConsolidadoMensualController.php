@@ -7,6 +7,7 @@ use App\Models\Concepto;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Medico;
+use App\Models\Periodo;
 
 class ConsolidadoMensualController extends Controller
 {
@@ -43,7 +44,9 @@ class ConsolidadoMensualController extends Controller
             ->groupBy('medico_id', 'concepto_id')
             ->get()
             ->keyBy(fn($item) => $item->medico_id . '_' . $item->concepto_id);
-
+        $periodo = Periodo::where('anio', $anio)
+            ->where('mes', $mes)
+            ->first();
         return view('consolidados.mensual', compact(
             'anio',
             'mes',
@@ -53,7 +56,8 @@ class ConsolidadoMensualController extends Controller
             'registrosResumen',
             'registrosDetalle',
             'medicos',
-            'registrosPorMedico'
+            'registrosPorMedico',
+            'periodo'
         ));
     }
 }

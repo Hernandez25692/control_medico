@@ -389,7 +389,7 @@ return [
 
         [
             'text' => 'Gráficas',
-            'url' => '#',
+            'route' => 'graficas.index',
             'icon' => 'fas fa-chart-pie',
             'can' => 'graficas.ver',
         ],
@@ -422,10 +422,15 @@ return [
             'header' => 'CONFIGURACIÓN',
             'can' => 'configuracion',
         ],
-
+        [
+            'text' => 'Control de Períodos',
+            'route' => 'periodos.index',
+            'icon' => 'fas fa-lock',
+            'can' => 'configuracion',
+        ],
         [
             'text' => 'Configuración',
-            'url' => '#',
+            'route' => 'configuracion.index',
             'icon' => 'fas fa-cogs',
             'can' => 'configuracion',
         ],

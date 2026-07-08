@@ -10,7 +10,9 @@ use App\Http\Controllers\ConsolidadoMensualController;
 use App\Http\Controllers\ConsolidadoAnualController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\DashboardController;
-
+use App\Http\Controllers\GraficaController;
+use App\Http\Controllers\ConfiguracionController;
+use App\Http\Controllers\PeriodoController;
 
 
 Route::get('/', function () {
@@ -69,4 +71,23 @@ Route::middleware(['auth', 'permission:reportes.ver'])->group(function () {
     Route::get('/reportes/exportar', [ReporteController::class, 'exportar'])
         ->name('reportes.exportar');
 });
+
+Route::middleware(['auth', 'permission:graficas.ver'])->group(function () {
+    Route::get('/graficas', [GraficaController::class, 'index'])
+        ->name('graficas.index');
+});
+
+Route::middleware(['auth', 'permission:configuracion'])->group(function () {
+    Route::get('/configuracion', [ConfiguracionController::class, 'index'])
+        ->name('configuracion.index');
+});
+
+Route::middleware(['auth', 'permission:configuracion'])->group(function () {
+    Route::get('/periodos', [PeriodoController::class, 'index'])
+        ->name('periodos.index');
+
+    Route::patch('/periodos/{periodo}/estado', [PeriodoController::class, 'cambiarEstado'])
+        ->name('periodos.estado');
+});
+
 require __DIR__ . '/auth.php';

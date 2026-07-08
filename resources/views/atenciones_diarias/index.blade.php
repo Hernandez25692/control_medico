@@ -9,6 +9,24 @@
 @section('content')
 
     <div class="card shadow-sm">
+        @if ($periodo->cerrado)
+            <div class="alert alert-danger mb-3">
+                <i class="fas fa-lock"></i>
+                <strong>Período Cerrado.</strong>
+
+                @if (auth()->user()->hasRole('Administrador'))
+                    Solo el administrador puede realizar modificaciones.
+                @else
+                    No es posible editar registros de este período.
+                @endif
+            </div>
+        @else
+            <div class="alert alert-success mb-3">
+                <i class="fas fa-lock-open"></i>
+                <strong>Período Abierto.</strong>
+                Los registros pueden modificarse.
+            </div>
+        @endif
         <div class="card-header bg-white">
             <form method="GET" action="{{ route('atenciones-diarias.index') }}" class="row">
 
@@ -416,6 +434,20 @@
 
                 $('#granTotal').text(granTotal);
             }
+
+            @if ($periodo->cerrado && auth()->user()->hasRole('Medico'))
+
+                $('.cantidad-dia').prop('readonly', true);
+                $('.cantidad-dia').css({
+                    'background': '#f8d7da',
+                    'cursor': 'not-allowed'
+                });
+
+                $('#estadoGuardado')
+                    .removeClass('badge-info')
+                    .addClass('badge-danger')
+                    .text('Período Cerrado');
+            @endif
         });
     </script>
 @stop

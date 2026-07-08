@@ -9,6 +9,17 @@
 @section('content')
 
     <div class="card shadow-sm">
+        @if ($cerrados == 12)
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                Todos los meses del año están cerrados.
+            </div>
+        @else
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-circle"></i>
+                {{ 12 - $cerrados }} mes(es) permanecen abiertos.
+            </div>
+        @endif
         <div class="card-header bg-white">
             <form method="GET" action="{{ route('consolidado-anual.index') }}" class="row">
 

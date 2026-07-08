@@ -9,6 +9,17 @@
 @section('content')
 
     <div class="card shadow-sm">
+        @if ($periodo?->cerrado)
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                Información oficial. Período cerrado.
+            </div>
+        @else
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-circle"></i>
+                Período abierto. La información aún puede cambiar.
+            </div>
+        @endif
         <div class="card-header bg-white">
             <form method="GET" action="{{ route('consolidado-mensual.index') }}" class="row">
                 <div class="col-md-3">
