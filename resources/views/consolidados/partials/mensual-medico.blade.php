@@ -5,11 +5,11 @@
                 <th class="col-numero">Nº</th>
                 <th class="col-concepto">Concepto</th>
 
-                @for ($dia = 1; $dia <= $diasMes; $dia++)
-                    <th>{{ $dia }}</th>
-                @endfor
+                @foreach ($medicos as $medico)
+                    <th>{{ $medico->nombre }}</th>
+                @endforeach
 
-                <th>Total Mes</th>
+                <th>Total General</th>
             </tr>
         </thead>
 
@@ -24,17 +24,17 @@
                     <td class="text-center font-weight-bold col-numero">{{ $concepto->orden }}</td>
                     <td class="font-weight-bold col-concepto">{{ $concepto->nombre }}</td>
 
-                    @for ($dia = 1; $dia <= $diasMes; $dia++)
+                    @foreach ($medicos as $medico)
                         @php
-                            $key = $concepto->id . '_' . $dia;
-                            $valor = $registrosDetalle[$key]->total ?? 0;
+                            $key = $medico->id . '_' . $concepto->id;
+                            $valor = $registrosPorMedico[$key]->total ?? 0;
                             $totalFila += $valor;
                         @endphp
 
                         <td class="text-center {{ $valor > 0 ? 'celda-dato' : '' }}">
                             {{ $valor }}
                         </td>
-                    @endfor
+                    @endforeach
 
                     <td class="text-center font-weight-bold celda-total">
                         {{ $totalFila }}

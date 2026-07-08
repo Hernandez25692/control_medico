@@ -46,8 +46,15 @@
                 <div class="col-md-3">
                     <label>Tipo de reporte</label>
                     <select name="tipo" class="form-control">
-                        <option value="resumen" {{ $tipo === 'resumen' ? 'selected' : '' }}>Resumen mensual</option>
-                        <option value="detalle" {{ $tipo === 'detalle' ? 'selected' : '' }}>Detalle diario</option>
+                        <option value="resumen" {{ $tipo === 'resumen' ? 'selected' : '' }}>
+                            Resumen general
+                        </option>
+                        <option value="medico" {{ $tipo === 'medico' ? 'selected' : '' }}>
+                            Resumen por médico
+                        </option>
+                        <option value="detalle" {{ $tipo === 'detalle' ? 'selected' : '' }}>
+                            Detalle diario
+                        </option>
                     </select>
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
@@ -61,6 +68,8 @@
         <div class="card-body">
             @if ($tipo === 'resumen')
                 @include('consolidados.partials.mensual-resumen')
+            @elseif ($tipo === 'medico')
+                @include('consolidados.partials.mensual-medico')
             @else
                 @include('consolidados.partials.mensual-detalle')
             @endif

@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\AtencionDiaria;
 use App\Models\Concepto;
-use App\Models\Medico;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Models\Medico;
 
 class ConsolidadoMensualController extends Controller
 {
@@ -20,31 +20,40 @@ class ConsolidadoMensualController extends Controller
         $fin = Carbon::create($anio, $mes, 1)->endOfMonth()->toDateString();
         $diasMes = Carbon::create($anio, $mes, 1)->daysInMonth;
 
-        $medicos = Medico::where('activo', true)->orderBy('nombre')->get();
-
         $conceptos = Concepto::where('activo', true)
             ->orderBy('orden')
             ->get();
 
-        $registrosResumen = AtencionDiaria::selectRaw('medico_id, concepto_id, SUM(cantidad) as total')
+        $registrosResumen = AtencionDiaria::selectRaw('concepto_id, SUM(cantidad) as total')
+            ->whereBetween('fecha', [$inicio, $fin])
+            ->groupBy('concepto_id')
+            ->get()
+            ->keyBy('concepto_id');
+
+        $registrosDetalle = AtencionDiaria::selectRaw('concepto_id, DAY(fecha) as dia, SUM(cantidad) as total')
+            ->whereBetween('fecha', [$inicio, $fin])
+            ->groupBy('concepto_id', 'dia')
+            ->get()
+            ->keyBy(fn($item) => $item->concepto_id . '_' . $item->dia);
+
+        $medicos = Medico::where('activo', true)->orderBy('nombre')->get();
+
+        $registrosPorMedico = AtencionDiaria::selectRaw('medico_id, concepto_id, SUM(cantidad) as total')
             ->whereBetween('fecha', [$inicio, $fin])
             ->groupBy('medico_id', 'concepto_id')
             ->get()
             ->keyBy(fn($item) => $item->medico_id . '_' . $item->concepto_id);
-
-        $registrosDetalle = AtencionDiaria::whereBetween('fecha', [$inicio, $fin])
-            ->get()
-            ->keyBy(fn($item) => $item->medico_id . '_' . $item->concepto_id . '_' . $item->fecha->format('j'));
 
         return view('consolidados.mensual', compact(
             'anio',
             'mes',
             'tipo',
             'diasMes',
-            'medicos',
             'conceptos',
             'registrosResumen',
-            'registrosDetalle'
+            'registrosDetalle',
+            'medicos',
+            'registrosPorMedico'
         ));
     }
 }
