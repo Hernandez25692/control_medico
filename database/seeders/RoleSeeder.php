@@ -46,7 +46,13 @@ class RoleSeeder extends Seeder
         }
 
         $admin = Role::firstOrCreate(['name' => 'Administrador']);
-
         $admin->syncPermissions(Permission::all());
+
+        $medico = Role::firstOrCreate(['name' => 'Medico']);
+        $medico->syncPermissions([
+            'atenciones.ver',
+            'atenciones.crear',
+            'atenciones.editar',
+        ]);
     }
 }

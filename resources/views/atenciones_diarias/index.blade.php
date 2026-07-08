@@ -12,16 +12,24 @@
         <div class="card-header bg-white">
             <form method="GET" action="{{ route('atenciones-diarias.index') }}" class="row">
 
-                <div class="col-md-4">
-                    <label>Médico</label>
-                    <select name="medico_id" class="form-control">
-                        @foreach ($medicos as $medico)
-                            <option value="{{ $medico->id }}" {{ $medicoId == $medico->id ? 'selected' : '' }}>
-                                {{ $medico->codigo }} - {{ $medico->nombre }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                @if (auth()->user()->hasRole('Administrador'))
+                    <div class="col-md-4">
+                        <label>Médico</label>
+                        <select name="medico_id" class="form-control">
+                            @foreach ($medicos as $medico)
+                                <option value="{{ $medico->id }}" {{ $medicoId == $medico->id ? 'selected' : '' }}>
+                                    {{ $medico->codigo }} - {{ $medico->nombre }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                @else
+                    <div class="col-md-4">
+                        <label>Médico</label>
+                        <input type="text" class="form-control"
+                            value="{{ auth()->user()->medico->codigo }} - {{ auth()->user()->medico->nombre }}" readonly>
+                    </div>
+                @endif
 
                 <div class="col-md-3">
                     <label>Mes</label>

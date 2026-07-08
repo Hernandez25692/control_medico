@@ -21,8 +21,15 @@ class AtencionDiariaController extends Controller
         $anio = (int) ($request->anio ?? date('Y'));
         $mes = (int) ($request->mes ?? date('n'));
 
-        $medicos = Medico::where('activo', true)->orderBy('nombre')->get();
-        $medicoId = $request->medico_id ?? $medicos->first()?->id;
+        $user = Auth::user();
+
+        if ($user->hasRole('Administrador')) {
+            $medicos = Medico::where('activo', true)->orderBy('nombre')->get();
+            $medicoId = $request->medico_id ?? $medicos->first()?->id;
+        } else {
+            $medicos = Medico::where('id', $user->medico_id)->get();
+            $medicoId = $user->medico_id;
+        }
 
         $conceptos = Concepto::where('activo', true)
             ->orderBy('orden')
@@ -61,7 +68,13 @@ class AtencionDiariaController extends Controller
             'dia' => ['required', 'integer', 'min:1', 'max:31'],
             'cantidad' => ['required', 'integer', 'min:0'],
         ]);
+        $user = Auth::user();
 
+        if ($user->hasRole('Medico')) {
+            $request->merge([
+                'medico_id' => $user->medico_id,
+            ]);
+        }
         $concepto = Concepto::findOrFail($request->concepto_id);
 
         if (array_key_exists((int) $concepto->orden, $this->conceptosAutomaticos)) {

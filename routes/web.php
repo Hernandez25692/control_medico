@@ -5,7 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MedicoController;
 use App\Http\Controllers\ConceptoController;
 use App\Http\Controllers\AtencionDiariaController;
-
+use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\ConsolidadoMensualController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -37,6 +38,16 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/atenciones-diarias/guardar-celda', [AtencionDiariaController::class, 'guardarCelda'])
         ->name('atenciones-diarias.guardar-celda');
+});
+
+Route::middleware(['auth', 'permission:usuarios.ver'])->group(function () {
+    Route::resource('usuarios', UsuarioController::class)->except(['show', 'destroy']);
+    Route::patch('usuarios/{user}/estado', [UsuarioController::class, 'cambiarEstado'])->name('usuarios.estado');
+});
+
+Route::middleware(['auth', 'permission:reportes.ver'])->group(function () {
+    Route::get('/consolidado-mensual', [ConsolidadoMensualController::class, 'index'])
+        ->name('consolidado-mensual.index');
 });
 
 require __DIR__ . '/auth.php';

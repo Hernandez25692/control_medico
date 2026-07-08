@@ -300,98 +300,134 @@ return [
 
     'menu' => [
 
+        /*
+    |--------------------------------------------------------------------------
+    | DASHBOARD
+    |--------------------------------------------------------------------------
+    */
+
         [
-            'text' => 'DASHBOARD',
+            'text' => 'Dashboard',
             'route' => 'dashboard',
             'icon' => 'fas fa-home',
+            'can' => 'dashboard',
         ],
+
+        /*
+    |--------------------------------------------------------------------------
+    | ATENCIONES
+    |--------------------------------------------------------------------------
+    */
 
         [
             'header' => 'ATENCIONES',
         ],
 
         [
-            [
-                'text' => 'Atenciones Diarias',
-                'url'  => 'atenciones-diarias',
-                'icon' => 'fas fa-calendar-check',
-            ],
+            'text' => 'Atenciones Diarias',
+            'route' => 'atenciones-diarias.index',
+            'icon' => 'fas fa-calendar-check',
+            'can' => 'atenciones.ver',
         ],
 
         [
             'text' => 'Consolidado Mensual',
+            'route' => 'consolidado-mensual.index',
             'icon' => 'fas fa-calendar-alt',
-            'url' => '#',
+            'can' => 'reportes.ver',
         ],
 
         [
             'text' => 'Consolidado Anual',
-            'icon' => 'fas fa-chart-line',
             'url' => '#',
+            'icon' => 'fas fa-chart-line',
+            'can' => 'reportes.ver',
         ],
+
+        /*
+    |--------------------------------------------------------------------------
+    | CATÁLOGOS
+    |--------------------------------------------------------------------------
+    */
 
         [
             'header' => 'CATÁLOGOS',
+            'can' => 'medicos.ver',
         ],
 
         [
             'text' => 'Médicos',
-            'icon' => 'fas fa-user-md',
             'route' => 'medicos.index',
+            'icon' => 'fas fa-user-md',
+            'can' => 'medicos.ver',
         ],
 
         [
             'text' => 'Conceptos',
-            'icon' => 'fas fa-list',
             'route' => 'conceptos.index',
+            'icon' => 'fas fa-list',
+            'can' => 'conceptos.ver',
         ],
+
+        /*
+    |--------------------------------------------------------------------------
+    | REPORTES
+    |--------------------------------------------------------------------------
+    */
 
         [
             'header' => 'REPORTES',
+            'can' => 'reportes.ver',
         ],
 
         [
             'text' => 'Reportes',
-            'icon' => 'fas fa-file-excel',
             'url' => '#',
+            'icon' => 'fas fa-file-excel',
+            'can' => 'reportes.ver',
         ],
 
         [
             'text' => 'Gráficas',
-            'icon' => 'fas fa-chart-pie',
             'url' => '#',
+            'icon' => 'fas fa-chart-pie',
+            'can' => 'graficas.ver',
         ],
+
+        /*
+    |--------------------------------------------------------------------------
+    | ADMINISTRACIÓN
+    |--------------------------------------------------------------------------
+    */
 
         [
             'header' => 'ADMINISTRACIÓN',
+            'can' => 'usuarios.ver',
         ],
 
         [
             'text' => 'Usuarios',
+            'route' => 'usuarios.index',
             'icon' => 'fas fa-users',
-            'url' => '#',
+            'can' => 'usuarios.ver',
         ],
 
-        [
-            'text' => 'Roles',
-            'icon' => 'fas fa-user-shield',
-            'url' => '#',
-        ],
-
-        [
-            'text' => 'Permisos',
-            'icon' => 'fas fa-key',
-            'url' => '#',
-        ],
+        /*
+    |--------------------------------------------------------------------------
+    | CONFIGURACIÓN
+    |--------------------------------------------------------------------------
+    */
 
         [
             'header' => 'CONFIGURACIÓN',
+            'can' => 'configuracion',
         ],
 
         [
             'text' => 'Configuración',
-            'icon' => 'fas fa-gear',
             'url' => '#',
+            'icon' => 'fas fa-cogs',
+            'can' => 'configuracion',
         ],
 
     ],
