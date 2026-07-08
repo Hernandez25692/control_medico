@@ -339,7 +339,7 @@ return [
 
         [
             'text' => 'Consolidado Anual',
-            'url' => '#',
+            'route' => 'consolidado-anual.index',
             'icon' => 'fas fa-chart-line',
             'can' => 'reportes.ver',
         ],

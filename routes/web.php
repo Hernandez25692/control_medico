@@ -7,6 +7,7 @@ use App\Http\Controllers\ConceptoController;
 use App\Http\Controllers\AtencionDiariaController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ConsolidadoMensualController;
+use App\Http\Controllers\ConsolidadoAnualController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -48,6 +49,11 @@ Route::middleware(['auth', 'permission:usuarios.ver'])->group(function () {
 Route::middleware(['auth', 'permission:reportes.ver'])->group(function () {
     Route::get('/consolidado-mensual', [ConsolidadoMensualController::class, 'index'])
         ->name('consolidado-mensual.index');
+});
+
+Route::middleware(['auth', 'permission:reportes.ver'])->group(function () {
+    Route::get('/consolidado-anual', [ConsolidadoAnualController::class, 'index'])
+        ->name('consolidado-anual.index');
 });
 
 require __DIR__ . '/auth.php';
