@@ -13,7 +13,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GraficaController;
 use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\PeriodoController;
-
+use App\Http\Controllers\AuditoriaAtencionController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -88,6 +88,11 @@ Route::middleware(['auth', 'permission:configuracion'])->group(function () {
 
     Route::patch('/periodos/{periodo}/estado', [PeriodoController::class, 'cambiarEstado'])
         ->name('periodos.estado');
+});
+
+Route::middleware(['auth', 'permission:configuracion'])->group(function () {
+    Route::get('/auditoria-atenciones', [AuditoriaAtencionController::class, 'index'])
+        ->name('auditoria-atenciones.index');
 });
 
 require __DIR__ . '/auth.php';

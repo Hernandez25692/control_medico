@@ -8,30 +8,35 @@
 
 @section('content')
 
-    <div class="card shadow-sm">
+    <div class="card shadow-sm clinic-sheet-card">
         @if ($periodo->cerrado)
-            <div class="alert alert-danger mb-3">
+            <div class="alert alert-danger mb-3 d-flex align-items-center gap-2">
                 <i class="fas fa-lock"></i>
-                <strong>Período Cerrado.</strong>
+                <div>
+                    <strong>Período Cerrado.</strong>
 
-                @if (auth()->user()->hasRole('Administrador'))
-                    Solo el administrador puede realizar modificaciones.
-                @else
-                    No es posible editar registros de este período.
-                @endif
+                    @if (auth()->user()->hasRole('Administrador'))
+                        Solo el administrador puede realizar modificaciones.
+                    @else
+                        No es posible editar registros de este período.
+                    @endif
+                </div>
             </div>
         @else
-            <div class="alert alert-success mb-3">
+            <div class="alert alert-success mb-3 d-flex align-items-center gap-2">
                 <i class="fas fa-lock-open"></i>
-                <strong>Período Abierto.</strong>
-                Los registros pueden modificarse.
+                <div>
+                    <strong>Período Abierto.</strong>
+                    Los registros pueden modificarse.
+                </div>
             </div>
         @endif
-        <div class="card-header bg-white">
-            <form method="GET" action="{{ route('atenciones-diarias.index') }}" class="row">
+
+        <div class="card-header bg-white sheet-toolbar">
+            <form method="GET" action="{{ route('atenciones-diarias.index') }}" class="row align-items-end">
 
                 @if (auth()->user()->hasRole('Administrador'))
-                    <div class="col-md-4">
+                    <div class="col-md-4 toolbar-field">
                         <label>Médico</label>
                         <select name="medico_id" class="form-control">
                             @foreach ($medicos as $medico)
@@ -42,14 +47,14 @@
                         </select>
                     </div>
                 @else
-                    <div class="col-md-4">
+                    <div class="col-md-4 toolbar-field">
                         <label>Médico</label>
                         <input type="text" class="form-control"
                             value="{{ auth()->user()->medico->codigo }} - {{ auth()->user()->medico->nombre }}" readonly>
                     </div>
                 @endif
 
-                <div class="col-md-3">
+                <div class="col-md-3 toolbar-field">
                     <label>Mes</label>
                     <select name="mes" class="form-control">
                         @php
@@ -77,13 +82,13 @@
                     </select>
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-md-2 toolbar-field">
                     <label>Año</label>
                     <input type="number" name="anio" class="form-control" value="{{ $anio }}">
                 </div>
 
-                <div class="col-md-3 d-flex align-items-end">
-                    <button class="btn btn-primary">
+                <div class="col-md-3 toolbar-field">
+                    <button class="btn btn-primary btn-block">
                         <i class="fas fa-search"></i> Consultar
                     </button>
                 </div>
@@ -93,9 +98,9 @@
 
         <div class="card-body">
 
-            <div class="mb-2">
-                <span class="badge badge-success">Autoguardado activo</span>
-                <span class="badge badge-warning">Filas automáticas bloqueadas</span>
+            <div class="sheet-status-row mb-2">
+                <span class="badge badge-success"><i class="fas fa-save"></i> Autoguardado activo</span>
+                <span class="badge badge-warning"><i class="fas fa-lock"></i> Filas automáticas bloqueadas</span>
                 <span class="badge badge-info" id="estadoGuardado">Listo</span>
             </div>
 
@@ -108,10 +113,17 @@
                     <thead>
                         <tr class="text-center">
                             <th class="col-numero">Nº</th>
-                            <th class="col-concepto">Concepto</th>
+                            <th class="col-concepto text-left">Concepto</th>
 
                             @for ($dia = 1; $dia <= $diasMes; $dia++)
-                                <th class="col-dia">{{ $dia }}</th>
+                                @php
+                                    $esFinDeSemana = \Carbon\Carbon::createFromDate(
+                                        (int) $anio,
+                                        (int) $mes,
+                                        $dia,
+                                    )->isWeekend();
+                                @endphp
+                                <th class="col-dia {{ $esFinDeSemana ? 'col-dia-weekend' : '' }}">{{ $dia }}</th>
                             @endfor
 
                             <th class="col-total">Total</th>
@@ -140,9 +152,14 @@
                                         $key = $concepto->id . '_' . $dia;
                                         $valor = $registros[$key]->cantidad ?? 0;
                                         $totalFila += $valor;
+                                        $esFinDeSemana = \Carbon\Carbon::createFromDate(
+                                            (int) $anio,
+                                            (int) $mes,
+                                            $dia,
+                                        )->isWeekend();
                                     @endphp
 
-                                    <td>
+                                    <td class="{{ $esFinDeSemana ? 'col-dia-weekend' : '' }}">
                                         <input type="number" min="0" value="{{ $valor }}"
                                             class="form-control form-control-sm text-center cantidad-dia {{ $valor > 0 ? 'celda-con-dato' : '' }}"
                                             data-concepto="{{ $concepto->id }}" data-orden="{{ $orden }}"
@@ -176,111 +193,331 @@
 @stop
 
 @section('css')
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap"
+        rel="stylesheet">
+
     <style>
+        :root {
+            --navy: #0B3B5C;
+            --navy-dark: #082A44;
+            --teal: #1E8A75;
+            --teal-light: #2FB39A;
+            --teal-tint: #E4F5F1;
+            --amber: #B9821E;
+            --amber-tint: #FFF6E0;
+            --amber-border: #F0C36D;
+            --weekend-tint: #F2F5F9;
+            --ink: #16232E;
+            --muted: #6B7A88;
+            --grid-line: #DCE4EA;
+            --total-tint: #EAF1F7;
+        }
+
+        /* ---------- Tarjeta y encabezado ---------- */
+
+        .clinic-sheet-card {
+            border: 1px solid var(--grid-line);
+            border-radius: 12px;
+        }
+
+        .clinic-sheet-card .alert {
+            border-radius: 10px 10px 0 0;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            font-size: 13.5px;
+        }
+
+        .clinic-sheet-card .alert i {
+            font-size: 16px;
+        }
+
+        .gap-2 {
+            gap: 8px;
+        }
+
+        /* ---------- Toolbar de filtros ---------- */
+
+        .sheet-toolbar {
+            background: #FAFBFC !important;
+            border-bottom: 1px solid var(--grid-line);
+            padding: 18px 20px;
+        }
+
+        .toolbar-field label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 5px;
+        }
+
+        .toolbar-field .form-control {
+            border: 1.5px solid var(--grid-line);
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13.5px;
+            height: 40px;
+        }
+
+        .toolbar-field .form-control:focus {
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(30, 138, 117, 0.12);
+        }
+
+        .toolbar-field .btn-primary {
+            background: linear-gradient(135deg, var(--teal) 0%, #17705F 100%);
+            border: none;
+            height: 40px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13.5px;
+            box-shadow: 0 8px 18px -8px rgba(30, 138, 117, 0.55);
+        }
+
+        .toolbar-field .btn-primary:hover {
+            background: linear-gradient(135deg, #1c7c69 0%, #146253 100%);
+        }
+
+        /* ---------- Badges de estado ---------- */
+
+        .sheet-status-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .sheet-status-row .badge {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 7px 12px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.01em;
+        }
+
+        /* ---------- Contenedor / hoja de cálculo ---------- */
+
         .contenedor-tabla {
             max-height: 680px;
             overflow: auto;
-            border: 1px solid #dee2e6;
+            border: 1px solid var(--grid-line);
+            border-radius: 10px;
+            background: #fff;
         }
 
         .tabla-atenciones {
             margin-bottom: 0;
-            font-size: 13px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13.5px;
+            border-collapse: separate;
+            border-spacing: 0;
         }
 
-        .tabla-atenciones th {
-            background: #e9ecef;
-            text-align: center;
+        .tabla-atenciones th,
+        .tabla-atenciones td {
+            border: 1px solid var(--grid-line) !important;
             vertical-align: middle;
             white-space: nowrap;
+        }
+
+        /* Encabezado tipo Excel */
+        .tabla-atenciones thead th {
+            background: var(--navy);
+            color: #fff;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 12.5px;
+            letter-spacing: 0.02em;
+            padding: 12px 8px;
             position: sticky;
             top: 0;
             z-index: 10;
+            border-color: var(--navy-dark) !important;
         }
 
-        .tabla-atenciones td {
-            vertical-align: middle;
-            white-space: nowrap;
+        .tabla-atenciones thead .col-dia-weekend {
+            background: var(--navy-dark);
         }
 
+        /* Columnas congeladas (freeze panes) */
         .col-numero {
-            min-width: 55px;
-            width: 55px;
+            min-width: 60px;
+            width: 60px;
             position: sticky;
             left: 0;
-            background: #ffffff;
+            background: #F3F6F8;
             z-index: 8;
+            text-align: center;
+            font-weight: 700;
+            color: var(--navy);
         }
 
         .col-concepto {
-            min-width: 390px;
-            width: 390px;
+            min-width: 420px;
+            width: 420px;
             position: sticky;
-            left: 55px;
+            left: 60px;
             background: #ffffff;
             z-index: 8;
+            font-family: 'Inter', sans-serif;
+            font-size: 13.5px;
+            padding-left: 14px !important;
+            box-shadow: 3px 0 6px -3px rgba(11, 59, 92, 0.15);
         }
 
-        thead .col-numero,
-        thead .col-concepto {
+        thead .col-numero {
+            background: var(--navy);
+            color: #fff;
             z-index: 20;
-            background: #dfe4ea;
         }
 
+        thead .col-concepto {
+            background: var(--navy);
+            color: #fff;
+            z-index: 20;
+            box-shadow: none;
+            text-align: left;
+            padding-left: 14px !important;
+        }
+
+        /* Celdas de día — más grandes, estilo Excel */
         .col-dia {
-            min-width: 55px;
+            min-width: 68px;
+            padding: 0 !important;
+        }
+
+        .col-dia-weekend {
+            background: var(--weekend-tint);
         }
 
         .col-total {
-            min-width: 85px;
-            background: #d1ecf1 !important;
+            min-width: 95px;
+            background: var(--total-tint) !important;
+            color: var(--navy);
         }
 
+        /* Inputs de cantidad — celdas grandes */
         .cantidad-dia {
-            height: 30px;
-            padding: 2px;
-            border-radius: 4px;
-            border: 1px solid #ced4da;
+            height: 46px;
+            width: 100%;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14.5px;
+            font-weight: 600;
+            color: var(--ink);
+            text-align: center;
+            padding: 0;
         }
 
         .cantidad-dia:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 0 0.12rem rgba(0, 123, 255, .25);
+            outline: none;
+            background: #fff;
+            box-shadow: inset 0 0 0 2px var(--teal);
+            position: relative;
+            z-index: 5;
         }
 
         .celda-con-dato {
-            background: #d4edda;
-            font-weight: bold;
+            background: var(--teal-tint);
+            color: #146455;
         }
 
+        .cantidad-dia:focus.celda-con-dato {
+            background: #fff;
+        }
+
+        /* Filas automáticas (calculadas / bloqueadas) */
         .fila-automatica td,
         .fila-automatica .col-numero,
         .fila-automatica .col-concepto {
-            background: #fff3cd !important;
-            font-weight: bold;
+            background: var(--amber-tint) !important;
+        }
+
+        .fila-automatica .col-numero,
+        .fila-automatica .col-concepto {
+            color: var(--amber);
         }
 
         .fila-automatica input {
-            background: #fff3cd !important;
-            font-weight: bold;
+            background: var(--amber-tint) !important;
+            color: var(--amber);
+            font-weight: 700;
             cursor: not-allowed;
-            border: 1px solid #e0a800;
         }
 
+        /* Totales */
         .fila-total-dia td {
-            background: #d1ecf1 !important;
-            font-weight: bold;
+            background: var(--navy) !important;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 12.5px;
             position: sticky;
             bottom: 0;
             z-index: 12;
+            padding: 12px 8px;
+        }
+
+        .fila-total-dia .col-numero,
+        .fila-total-dia .col-concepto {
+            background: var(--navy-dark) !important;
+            color: #fff;
+            text-align: left;
+        }
+
+        #granTotal {
+            background: var(--teal) !important;
         }
 
         .total-fila {
-            background: #e2f0fb;
+            background: var(--total-tint);
+            color: var(--navy);
+            font-family: 'Inter', sans-serif;
         }
 
-        .tabla-atenciones tbody tr:hover td {
-            background: #eef6ff;
+        /* Hover tipo hoja de cálculo */
+        .tabla-atenciones tbody tr:hover td:not(.col-numero):not(.col-concepto) {
+            background: #F0F7FC;
+        }
+
+        .tabla-atenciones tbody tr:hover .col-numero,
+        .tabla-atenciones tbody tr:hover .col-concepto {
+            background: #E7EFF4;
+        }
+
+        .tabla-atenciones tbody tr.fila-automatica:hover td {
+            background: var(--amber-tint) !important;
+        }
+
+        /* Scrollbar más discreta */
+        .contenedor-tabla::-webkit-scrollbar {
+            height: 10px;
+            width: 10px;
+        }
+
+        .contenedor-tabla::-webkit-scrollbar-track {
+            background: #F3F6F8;
+        }
+
+        .contenedor-tabla::-webkit-scrollbar-thumb {
+            background: #C3D0DA;
+            border-radius: 6px;
+        }
+
+        .contenedor-tabla::-webkit-scrollbar-thumb:hover {
+            background: var(--teal);
         }
     </style>
 @stop

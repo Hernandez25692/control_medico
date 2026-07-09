@@ -428,6 +428,14 @@ return [
             'icon' => 'fas fa-lock',
             'can' => 'configuracion',
         ],
+
+        [
+            'text' => 'Auditoría Atenciones',
+            'route' => 'auditoria-atenciones.index',
+            'icon' => 'fas fa-history',
+            'can' => 'configuracion',
+        ],
+        
         [
             'text' => 'Configuración',
             'route' => 'configuracion.index',

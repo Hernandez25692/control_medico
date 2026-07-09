@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Periodo;
+use App\Models\AuditoriaAtencion;
 
 class AtencionDiariaController extends Controller
 {
@@ -106,17 +107,39 @@ class AtencionDiariaController extends Controller
 
         $fecha = Carbon::create($request->anio, $request->mes, $request->dia)->toDateString();
 
-        AtencionDiaria::updateOrCreate(
+        $registro = AtencionDiaria::where('medico_id', $request->medico_id)
+            ->where('concepto_id', $request->concepto_id)
+            ->where('fecha', $fecha)
+            ->first();
+
+        $valorAnterior = $registro?->cantidad ?? 0;
+        $valorNuevo = (int) $request->cantidad;
+
+        $registro = AtencionDiaria::updateOrCreate(
             [
                 'medico_id' => $request->medico_id,
                 'concepto_id' => $request->concepto_id,
                 'fecha' => $fecha,
             ],
             [
-                'cantidad' => $request->cantidad,
+                'cantidad' => $valorNuevo,
                 'user_id' => Auth::id(),
             ]
         );
+
+        if ($valorAnterior !== $valorNuevo) {
+            AuditoriaAtencion::create([
+                'atencion_diaria_id' => $registro->id,
+                'medico_id' => $request->medico_id,
+                'concepto_id' => $request->concepto_id,
+                'fecha' => $fecha,
+                'valor_anterior' => $valorAnterior,
+                'valor_nuevo' => $valorNuevo,
+                'user_id' => Auth::id(),
+                'ip' => $request->ip(),
+                'user_agent' => substr($request->userAgent(), 0, 255),
+            ]);
+        }
 
         $automaticos = $this->recalcularAutomaticos($request->medico_id, $fecha);
 
