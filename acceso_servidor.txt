@@ -1,0 +1,2 @@
+ssh -i /c/Users/herna/Downloads/LightsailDefaultKey-Clinica.pem ubuntu@44.200.206.162
+

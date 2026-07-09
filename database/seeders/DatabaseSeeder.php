@@ -23,10 +23,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $user = \App\Models\User::firstOrCreate(
-            ['email' => 'admin@ccisur.org'],
+            ['email' => 'gustavoavelar5019@gmail.com'],
             [
                 'name' => 'Administrador',
-                'password' => bcrypt('Admin123*'),
+                'password' => bcrypt('Gustavo2026@#'),
             ]
         );
 
