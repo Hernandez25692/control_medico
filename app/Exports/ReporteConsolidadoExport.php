@@ -8,9 +8,18 @@ use App\Models\Medico;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithCustomStartCell;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
-class ReporteConsolidadoExport implements FromArray, WithHeadings, ShouldAutoSize
+class ReporteConsolidadoExport implements FromArray, WithHeadings, ShouldAutoSize, WithEvents, WithCustomStartCell, WithColumnWidths
 {
     public function __construct(
         private string $reporte,
@@ -18,6 +27,11 @@ class ReporteConsolidadoExport implements FromArray, WithHeadings, ShouldAutoSiz
         private int $anio,
         private ?int $mes = null
     ) {}
+
+    public function startCell(): string
+    {
+        return 'A4';
+    }
 
     public function headings(): array
     {
@@ -36,7 +50,23 @@ class ReporteConsolidadoExport implements FromArray, WithHeadings, ShouldAutoSiz
         }
 
         if ($this->tipo === 'detalle') {
-            return ['Nº', 'Concepto', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre', 'Total Anual'];
+            return [
+                'Nº',
+                'Concepto',
+                'Enero',
+                'Febrero',
+                'Marzo',
+                'Abril',
+                'Mayo',
+                'Junio',
+                'Julio',
+                'Agosto',
+                'Septiembre',
+                'Octubre',
+                'Noviembre',
+                'Diciembre',
+                'Total Anual',
+            ];
         }
 
         if ($this->tipo === 'medico') {
@@ -52,6 +82,165 @@ class ReporteConsolidadoExport implements FromArray, WithHeadings, ShouldAutoSiz
         return $this->reporte === 'mensual'
             ? $this->mensual()
             : $this->anual();
+    }
+
+    public function columnWidths(): array
+    {
+        $totalColumnas = count($this->headings());
+        $ultimaColumna = Coordinate::stringFromColumnIndex($totalColumnas);
+
+        $anchos = [
+            'A' => 8,
+            'B' => 38,
+            $ultimaColumna => 14,
+        ];
+
+        for ($i = 3; $i < $totalColumnas; $i++) {
+            $columna = Coordinate::stringFromColumnIndex($i);
+            $anchos[$columna] = 7;
+        }
+
+        return $anchos;
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function (AfterSheet $event) {
+                $sheet = $event->sheet->getDelegate();
+
+                $totalColumnas = count($this->headings());
+                $ultimaColumna = Coordinate::stringFromColumnIndex($totalColumnas);
+                $totalFilas = count($this->array()) + 4;
+
+                $sheet->setCellValue('A1', 'CONSOLIDADO DE ATENCIONES MÉDICAS');
+                $sheet->setCellValue('A2', $this->subtituloReporte());
+
+                $sheet->mergeCells("A1:{$ultimaColumna}1");
+                $sheet->mergeCells("A2:{$ultimaColumna}2");
+
+                $sheet->getStyle("A1:{$ultimaColumna}1")->applyFromArray([
+                    'font' => [
+                        'bold' => true,
+                        'size' => 14,
+                    ],
+                    'alignment' => [
+                        'horizontal' => Alignment::HORIZONTAL_CENTER,
+                        'vertical' => Alignment::VERTICAL_CENTER,
+                    ],
+                ]);
+
+                $sheet->getStyle("A2:{$ultimaColumna}2")->applyFromArray([
+                    'font' => [
+                        'size' => 11,
+                    ],
+                    'alignment' => [
+                        'horizontal' => Alignment::HORIZONTAL_CENTER,
+                        'vertical' => Alignment::VERTICAL_CENTER,
+                    ],
+                ]);
+
+                $sheet->getStyle("A4:{$ultimaColumna}4")->applyFromArray([
+                    'font' => [
+                        'bold' => true,
+                    ],
+                    'fill' => [
+                        'fillType' => Fill::FILL_SOLID,
+                        'startColor' => [
+                            'rgb' => 'E9ECEF',
+                        ],
+                    ],
+                    'alignment' => [
+                        'horizontal' => Alignment::HORIZONTAL_CENTER,
+                        'vertical' => Alignment::VERTICAL_CENTER,
+                    ],
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => Border::BORDER_THIN,
+                        ],
+                    ],
+                ]);
+
+                $sheet->getStyle("A4:{$ultimaColumna}{$totalFilas}")->applyFromArray([
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => Border::BORDER_THIN,
+                            'color' => [
+                                'rgb' => '777777',
+                            ],
+                        ],
+                    ],
+                    'alignment' => [
+                        'vertical' => Alignment::VERTICAL_CENTER,
+                    ],
+                ]);
+
+                $sheet->getStyle("A5:A{$totalFilas}")
+                    ->getAlignment()
+                    ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+                $sheet->getStyle("B5:B{$totalFilas}")
+                    ->getAlignment()
+                    ->setHorizontal(Alignment::HORIZONTAL_LEFT);
+
+                if ($totalColumnas > 2) {
+                    $sheet->getStyle("C5:{$ultimaColumna}{$totalFilas}")
+                        ->getAlignment()
+                        ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                }
+
+                $sheet->getStyle("A4:{$ultimaColumna}{$totalFilas}")
+                    ->getAlignment()
+                    ->setWrapText(true);
+
+                $sheet->freezePane('C5');
+
+                $sheet->getPageSetup()
+                    ->setOrientation(PageSetup::ORIENTATION_LANDSCAPE)
+                    ->setPaperSize(PageSetup::PAPERSIZE_LETTER)
+                    ->setFitToWidth(1)
+                    ->setFitToHeight(0);
+
+                $sheet->getPageMargins()->setTop(0.25);
+                $sheet->getPageMargins()->setRight(0.20);
+                $sheet->getPageMargins()->setLeft(0.20);
+                $sheet->getPageMargins()->setBottom(0.25);
+
+                $sheet->getPageSetup()->setRowsToRepeatAtTopByStartAndEnd(1, 4);
+
+                $sheet->setShowGridlines(false);
+
+                $sheet->getRowDimension(1)->setRowHeight(22);
+                $sheet->getRowDimension(2)->setRowHeight(18);
+                $sheet->getRowDimension(4)->setRowHeight(22);
+            },
+        ];
+    }
+
+    private function subtituloReporte(): string
+    {
+        $meses = [
+            1 => 'Enero',
+            2 => 'Febrero',
+            3 => 'Marzo',
+            4 => 'Abril',
+            5 => 'Mayo',
+            6 => 'Junio',
+            7 => 'Julio',
+            8 => 'Agosto',
+            9 => 'Septiembre',
+            10 => 'Octubre',
+            11 => 'Noviembre',
+            12 => 'Diciembre',
+        ];
+
+        $texto = ucfirst($this->reporte);
+
+        if ($this->reporte === 'mensual') {
+            $texto .= ' - ' . ($meses[$this->mes] ?? '');
+        }
+
+        return $texto . ' - ' . $this->anio;
     }
 
     private function conceptos()
@@ -98,6 +287,7 @@ class ReporteConsolidadoExport implements FromArray, WithHeadings, ShouldAutoSiz
     private function mensualDetalle(): array
     {
         $dias = Carbon::create($this->anio, $this->mes, 1)->daysInMonth;
+
         $inicio = Carbon::create($this->anio, $this->mes, 1)->startOfMonth();
         $fin = Carbon::create($this->anio, $this->mes, 1)->endOfMonth();
 
@@ -130,6 +320,7 @@ class ReporteConsolidadoExport implements FromArray, WithHeadings, ShouldAutoSiz
     {
         $inicio = Carbon::create($this->anio, $this->mes, 1)->startOfMonth();
         $fin = Carbon::create($this->anio, $this->mes, 1)->endOfMonth();
+
         $medicos = Medico::where('activo', true)->orderBy('nombre')->get();
 
         $datos = AtencionDiaria::selectRaw('medico_id, concepto_id, SUM(cantidad) total')

@@ -9,7 +9,7 @@
 
 @section('content')
 
-    <div class="card shadow-sm border-0">
+    <div class="card shadow-sm border-0 no-print">
         <div class="card-header bg-white">
             <h3 class="card-title mb-0">
                 <i class="fas fa-file-medical-alt text-primary"></i> Generador de reportes
@@ -88,15 +88,16 @@
     </div>
 
     <div class="card shadow-sm border-0">
-        <div class="card-header bg-white">
+        <div class="card-header bg-white no-print">
             <h3 class="card-title mb-0">
                 <i class="fas fa-search text-secondary"></i> Vista previa
+                <span id="contadorRegistros" class="badge badge-success ml-2 d-none"></span>
             </h3>
         </div>
 
-        <div class="card-body bg-light">
+        <div class="card-body bg-light preview-body">
             <div id="previewContainer" class="report-preview">
-                <div class="text-center text-muted p-5">
+                <div class="text-center text-muted p-5 no-print">
                     <i class="fas fa-file-medical fa-3x mb-3"></i>
                     <p>Presione <b>Vista previa</b> para generar el reporte.</p>
                 </div>
@@ -104,7 +105,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="modalPrint" tabindex="-1">
+    <div class="modal fade no-print" id="modalPrint" tabindex="-1">
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
@@ -123,9 +124,16 @@
                     </select>
 
                     <label>Orientación</label>
-                    <select id="orientacion" class="form-control">
+                    <select id="orientacion" class="form-control mb-3">
                         <option value="landscape">Horizontal</option>
                         <option value="portrait">Vertical</option>
+                    </select>
+
+                    <label>Márgenes</label>
+                    <select id="margen" class="form-control">
+                        <option value="5mm">Estrecho</option>
+                        <option value="8mm">Normal</option>
+                        <option value="12mm">Amplio</option>
                     </select>
                 </div>
 
@@ -145,42 +153,58 @@
 
 @section('css')
     <style>
+        .preview-body {
+            padding: 15px;
+        }
+
         .report-preview {
             background: #fff;
             min-height: 520px;
-            padding: 25px;
+            padding: 15px;
             border: 1px solid #dee2e6;
             box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
-            overflow-x: auto;
+            overflow: auto;
+        }
+
+        .print-sheet {
+            width: 100%;
+            background: #fff;
+            margin: 0 auto;
         }
 
         .report-title {
             text-align: center;
-            margin-bottom: 18px;
+            margin: 0 0 8px 0;
+            padding: 0;
         }
 
         .report-title h4 {
             font-weight: 700;
-            margin-bottom: 2px;
+            margin: 0;
             text-transform: uppercase;
+            font-size: 20px;
+            line-height: 1.1;
         }
 
         .report-title p {
-            margin-bottom: 0;
+            margin: 2px 0 0 0;
             color: #555;
+            font-size: 13px;
+            line-height: 1.1;
         }
 
         .table-report {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: 11px;
         }
 
         .table-report th,
         .table-report td {
-            border: 1px solid #999;
-            padding: 5px 7px;
+            border: 1px solid #777;
+            padding: 3px 5px;
             white-space: nowrap;
+            vertical-align: middle;
         }
 
         .table-report th {
@@ -189,12 +213,33 @@
             font-weight: 700;
         }
 
-        .table-report td:first-child {
+        .table-report td {
             text-align: center;
-            font-weight: 600;
+        }
+
+        .table-report td:nth-child(2) {
+            text-align: left;
         }
 
         @media print {
+            @page {
+                margin: 5mm;
+            }
+
+            html,
+            body {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                background: #fff !important;
+            }
+
+            body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
             body * {
                 visibility: hidden !important;
             }
@@ -205,39 +250,99 @@
             }
 
             #previewContainer {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                padding: 0;
-                border: none;
-                box-shadow: none;
-                overflow: visible;
+                position: fixed !important;
+                left: 0 !important;
+                top: 0 !important;
+                right: 0 !important;
+                bottom: auto !important;
+                width: 100% !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                overflow: visible !important;
+                background: #fff !important;
             }
 
+            .content-wrapper,
+            .content,
+            .container-fluid,
+            .card,
+            .card-body,
+            .preview-body,
             .report-preview {
-                border: none;
-                box-shadow: none;
-                padding: 0;
-                overflow: visible;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                background: #fff !important;
+                min-height: 0 !important;
+                overflow: visible !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .print-sheet {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #fff !important;
+            }
+
+            .report-title {
+                margin: 0 0 3mm 0 !important;
+                padding: 0 !important;
+                page-break-after: avoid !important;
+            }
+
+            .report-title h4 {
+                font-size: 13pt !important;
+                line-height: 1 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .report-title p {
+                font-size: 9pt !important;
+                line-height: 1 !important;
+                margin: 1mm 0 0 0 !important;
+                padding: 0 !important;
             }
 
             .table-report {
                 width: 100% !important;
-                table-layout: auto;
-                page-break-inside: auto;
+                border-collapse: collapse !important;
+                table-layout: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                page-break-inside: auto !important;
+            }
+
+            .table-report thead {
+                display: table-header-group !important;
+            }
+
+            .table-report tr {
+                page-break-inside: avoid !important;
+                page-break-after: auto !important;
             }
 
             .table-report th,
             .table-report td {
-                font-size: 9px;
-                padding: 3px;
-                white-space: normal;
-                word-break: break-word;
+                font-size: 6.5pt !important;
+                line-height: 1 !important;
+                padding: 1.5px 2px !important;
+                border: 1px solid #555 !important;
+                white-space: nowrap !important;
+                word-break: normal !important;
             }
 
-            tr {
-                page-break-inside: avoid;
+            .table-report th {
+                background: #e9ecef !important;
+                font-weight: bold !important;
             }
         }
     </style>
@@ -256,12 +361,14 @@
             }
 
             function cargarPreview(callback = null) {
+                $('#contadorRegistros').addClass('d-none').text('');
+
                 $('#previewContainer').html(`
-                <div class="text-center text-muted p-5">
-                    <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
-                    <p>Generando vista previa...</p>
-                </div>
-            `);
+                    <div class="text-center text-muted p-5 no-print">
+                        <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                        <p>Generando vista previa...</p>
+                    </div>
+                `);
 
                 $.ajax({
                     url: "{{ route('reportes.preview') }}",
@@ -269,6 +376,9 @@
                     data: queryString(),
                     success: function(html) {
                         $('#previewContainer').html(html);
+
+                        let total = $('#previewContainer table tbody tr').length;
+                        $('#contadorRegistros').removeClass('d-none').text(total + ' registros');
 
                         if (callback) {
                             callback();
@@ -282,12 +392,32 @@
                         }
 
                         $('#previewContainer').html(`
-                        <div class="alert alert-danger mb-0">
-                            <i class="fas fa-exclamation-triangle"></i> ${mensaje}
-                        </div>
-                    `);
+                            <div class="alert alert-danger mb-0 no-print">
+                                <i class="fas fa-exclamation-triangle"></i> ${mensaje}
+                            </div>
+                        `);
                     }
                 });
+            }
+
+            function aplicarConfiguracionImpresion() {
+                let papel = $('#papel').val();
+                let orientacion = $('#orientacion').val();
+                let margen = $('#margen').val();
+
+                $('#printPageStyle').remove();
+
+                let style = document.createElement('style');
+                style.id = 'printPageStyle';
+
+                style.innerHTML = `
+                    @page {
+                        size: ${papel} ${orientacion};
+                        margin: ${margen};
+                    }
+                `;
+
+                document.head.appendChild(style);
             }
 
             $('#reporte').on('change', toggleMes);
@@ -307,27 +437,13 @@
 
             $('#btnPrint').on('click', function() {
                 cargarPreview(function() {
-                    let papel = $('#papel').val();
-                    let orientacion = $('#orientacion').val();
-
-                    $('#printPageStyle').remove();
-
-                    let style = document.createElement('style');
-                    style.id = 'printPageStyle';
-                    style.innerHTML = `
-                    @page {
-                        size: ${papel} ${orientacion};
-                        margin: 8mm;
-                    }
-                `;
-
-                    document.head.appendChild(style);
+                    aplicarConfiguracionImpresion();
 
                     $('#modalPrint').modal('hide');
 
                     setTimeout(function() {
                         window.print();
-                    }, 400);
+                    }, 350);
                 });
             });
 

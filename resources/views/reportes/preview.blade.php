@@ -15,39 +15,46 @@
     ];
 @endphp
 
-<div class="report-title">
-    <h4>Consolidado de Atenciones Médicas</h4>
-    <p>
-        {{ ucfirst($reporte) }}
-        @if ($reporte === 'mensual')
-            - {{ $meses[(int) $mes] ?? '' }}
-        @endif
-        - {{ $anio }}
-    </p>
-</div>
+<div class="print-sheet">
 
-<table class="table-report">
-    <thead>
-        <tr>
-            @foreach ($encabezados as $encabezado)
-                <th>{{ $encabezado }}</th>
-            @endforeach
-        </tr>
-    </thead>
+    <div class="report-title">
+        <h4>Consolidado de Atenciones Médicas</h4>
 
-    <tbody>
-        @forelse($filas as $fila)
+        <p>
+            {{ ucfirst($reporte) }}
+
+            @if ($reporte === 'mensual')
+                - {{ $meses[(int) $mes] ?? '' }}
+            @endif
+
+            - {{ $anio }}
+        </p>
+    </div>
+
+    <table class="table-report">
+        <thead>
             <tr>
-                @foreach ($fila as $celda)
-                    <td>{{ $celda }}</td>
+                @foreach ($encabezados as $encabezado)
+                    <th>{{ $encabezado }}</th>
                 @endforeach
             </tr>
-        @empty
-            <tr>
-                <td colspan="{{ count($encabezados) }}" class="text-center">
-                    No hay datos disponibles.
-                </td>
-            </tr>
-        @endforelse
-    </tbody>
-</table>
+        </thead>
+
+        <tbody>
+            @forelse ($filas as $fila)
+                <tr>
+                    @foreach ($fila as $celda)
+                        <td>{{ $celda }}</td>
+                    @endforeach
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="{{ count($encabezados) }}" class="text-center">
+                        No hay datos disponibles.
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+
+</div>
