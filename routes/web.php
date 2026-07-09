@@ -67,15 +67,12 @@ Route::middleware(['auth', 'permission:reportes.ver'])->group(function () {
 Route::middleware(['auth', 'permission:reportes.ver'])->group(function () {
     Route::get('/reportes', [ReporteController::class, 'index'])
         ->name('reportes.index');
-
+    Route::get('/reportes/vista-previa', [ReporteController::class, 'vistaPrevia'])->name('reportes.preview');
     Route::get('/reportes/exportar', [ReporteController::class, 'exportar'])
         ->name('reportes.exportar');
 });
 
-Route::middleware(['auth', 'permission:graficas.ver'])->group(function () {
-    Route::get('/graficas', [GraficaController::class, 'index'])
-        ->name('graficas.index');
-});
+
 
 Route::middleware(['auth', 'permission:configuracion'])->group(function () {
     Route::get('/configuracion', [ConfiguracionController::class, 'index'])

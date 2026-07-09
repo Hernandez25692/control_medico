@@ -26,7 +26,7 @@ class AuditoriaAtencionController extends Controller
 
         $auditorias = $query
             ->latest()
-            ->paginate(50)
+            ->paginate(20)
             ->withQueryString();
 
         $medicos = Medico::where('activo', true)

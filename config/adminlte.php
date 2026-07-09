@@ -387,12 +387,7 @@ return [
             'can' => 'reportes.ver',
         ],
 
-        [
-            'text' => 'Gráficas',
-            'route' => 'graficas.index',
-            'icon' => 'fas fa-chart-pie',
-            'can' => 'graficas.ver',
-        ],
+
 
         /*
     |--------------------------------------------------------------------------
@@ -435,7 +430,7 @@ return [
             'icon' => 'fas fa-history',
             'can' => 'configuracion',
         ],
-        
+
         [
             'text' => 'Configuración',
             'route' => 'configuracion.index',

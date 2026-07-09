@@ -171,10 +171,17 @@
 
         </div>
 
-        <div class="card-footer">
+        <div class="card-footer clearfix">
+            <div class="float-left">
+                <small class="text-muted">
+                    Mostrando {{ $auditorias->firstItem() ?? 0 }} a {{ $auditorias->lastItem() ?? 0 }}
+                    de {{ $auditorias->total() }} registros
+                </small>
+            </div>
 
-            {{ $auditorias->links() }}
-
+            <div class="float-right">
+                {{ $auditorias->onEachSide(1)->links('pagination::bootstrap-4') }}
+            </div>
         </div>
 
     </div>
