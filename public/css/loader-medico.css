@@ -1,0 +1,56 @@
+.preloader {
+    background: radial-gradient(circle, #ffffff 0%, #eef6fb 100%) !important;
+    z-index: 999999 !important;
+}
+
+.preloader img {
+    display: none !important;
+}
+
+.preloader::before {
+    content: "";
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    display: block;
+
+    background:
+        linear-gradient(#0d6efd 0 0) center / 16px 54px no-repeat,
+        linear-gradient(#0d6efd 0 0) center / 54px 16px no-repeat,
+        radial-gradient(circle, #ffffff 42%, transparent 43%),
+        conic-gradient(#0d6efd, #198754, #17a2b8, #0d6efd);
+
+    box-shadow:
+        0 18px 38px rgba(13, 110, 253, .22),
+        inset 0 0 0 10px #ffffff;
+
+    animation: medicoLoader 1s linear infinite;
+}
+
+.preloader::after {
+    content: "Cargando sistema médico";
+    margin-top: 18px;
+    color: #2c3e50;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: .4px;
+    animation: medicoTexto 1.3s ease-in-out infinite;
+}
+
+@keyframes medicoLoader {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes medicoTexto {
+
+    0%,
+    100% {
+        opacity: .55;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}

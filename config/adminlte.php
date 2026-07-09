@@ -114,8 +114,8 @@ return [
         'mode' => 'fullscreen',
         'img' => [
             'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
-            'alt' => 'AdminLTE Preloader Image',
-            'effect' => 'animation__shake',
+            'alt' => 'Cargando sistema médico',
+            'effect' => '',
             'width' => 60,
             'height' => 60,
         ],
@@ -475,6 +475,18 @@ return [
     */
 
     'plugins' => [
+
+        'LoaderMedico' => [
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'css',
+                    'asset' => true,
+                    'location' => 'css/loader-medico.css',
+                ],
+            ],
+        ],
+
         'Datatables' => [
             'active' => false,
             'files' => [
@@ -495,6 +507,7 @@ return [
                 ],
             ],
         ],
+
         'Select2' => [
             'active' => false,
             'files' => [
@@ -510,6 +523,7 @@ return [
                 ],
             ],
         ],
+
         'Chartjs' => [
             'active' => false,
             'files' => [
@@ -520,6 +534,7 @@ return [
                 ],
             ],
         ],
+
         'Sweetalert2' => [
             'active' => false,
             'files' => [
@@ -530,6 +545,7 @@ return [
                 ],
             ],
         ],
+
         'Pace' => [
             'active' => false,
             'files' => [
@@ -545,8 +561,8 @@ return [
                 ],
             ],
         ],
-    ],
 
+    ],
     /*
     |--------------------------------------------------------------------------
     | IFrame
