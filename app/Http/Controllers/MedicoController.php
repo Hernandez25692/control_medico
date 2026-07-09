@@ -11,20 +11,25 @@ class MedicoController extends Controller
     public function index()
     {
         $medicos = Medico::orderBy('nombre')->get();
+        $codigoSugerido = Medico::generarCodigoAutomatico();
 
-        return view('medicos.index', compact('medicos'));
+        return view('medicos.index', compact('medicos', 'codigoSugerido'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'codigo' => ['required', 'string', 'max:20', 'unique:medicos,codigo'],
-            'nombre' => ['required', 'string', 'max:150', 'unique:medicos,nombre'],
-            'especialidad' => ['nullable', 'string', 'max:100'],
+            'nombre' => [
+                'required',
+                'string',
+                'max:150',
+                Rule::unique('medicos', 'nombre'),
+            ],
+            'especialidad' => 'nullable|string|max:100',
         ]);
 
         Medico::create([
-            'codigo' => strtoupper(trim($request->codigo)),
+            'codigo' => Medico::generarCodigoAutomatico(),
             'nombre' => trim($request->nombre),
             'especialidad' => $request->especialidad,
             'activo' => $request->has('activo'),
@@ -44,12 +49,6 @@ class MedicoController extends Controller
     public function update(Request $request, Medico $medico)
     {
         $request->validate([
-            'codigo' => [
-                'required',
-                'string',
-                'max:20',
-                Rule::unique('medicos', 'codigo')->ignore($medico->id),
-            ],
             'nombre' => [
                 'required',
                 'string',
@@ -60,7 +59,6 @@ class MedicoController extends Controller
         ]);
 
         $medico->update([
-            'codigo' => strtoupper(trim($request->codigo)),
             'nombre' => trim($request->nombre),
             'especialidad' => $request->especialidad,
             'activo' => $request->has('activo'),
@@ -84,5 +82,12 @@ class MedicoController extends Controller
                 ? 'Médico activado correctamente.'
                 : 'Médico inactivado correctamente.',
         ]);
+    }
+
+    public function create()
+    {
+        $codigoSugerido = Medico::generarCodigoAutomatico();
+
+        return view('medicos.create', compact('codigoSugerido'));
     }
 }

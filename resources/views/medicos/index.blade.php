@@ -75,8 +75,14 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label>Código</label>
-                            <input type="text" name="codigo" id="codigo" class="form-control">
-                            <small class="text-danger error-codigo"></small>
+
+                            <input type="text" id="codigo" class="form-control bg-light text-muted"
+                                value="{{ $codigoSugerido ?? 'Se generará automáticamente' }}" readonly tabindex="-1"
+                                style="cursor: not-allowed;">
+
+                            <small class="text-muted">
+                                El código será asignado automáticamente al guardar el médico.
+                            </small>
                         </div>
 
                         <div class="form-group">
@@ -225,6 +231,7 @@
             function limpiarFormulario() {
                 $('#formMedico')[0].reset();
                 $('#medico_id').val('');
+                $('#codigo').val('{{ $codigoSugerido ?? 'Se generará automáticamente' }}');
                 $('#activo').prop('checked', true);
                 limpiarErrores();
             }

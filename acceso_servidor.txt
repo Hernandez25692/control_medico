@@ -1,2 +1,4 @@
-ssh -i /c/Users/herna/Downloads/LightsailDefaultKey-Clinica.pem ubuntu@44.200.206.162
+ssh -i /c/Users/herna/Downloads/LightsailDefaultKey-Clinica.pem ubuntu@34.202.59.233
+
+cd /var/www/control-medico
 
