@@ -373,7 +373,7 @@
             <i class="fas fa-hospital-user"></i>
         </div>
 
-        <h1>Sistema de Control de Atenciones Médicas Prueba</h1>
+        <h1>Sistema de Control de Atenciones Médicas</h1>
 
         <p class="subtitle">
             Registro, administración y generación de reportes de atenciones médicas diarias.
