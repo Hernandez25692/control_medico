@@ -11,8 +11,16 @@ use Illuminate\Support\Str;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request, EstadisticasService $stats)
-    {
+    public function index(
+        Request $request,
+        EstadisticasService $stats
+    ) {
+        /*
+        |--------------------------------------------------------------------------
+        | Filtros
+        |--------------------------------------------------------------------------
+        */
+
         $anio = (int) $request->input('anio', now()->year);
         $mes = (int) $request->input('mes', now()->month);
 
@@ -24,8 +32,13 @@ class DashboardController extends Controller
             $mes = (int) now()->month;
         }
 
-        $medicoId = $request->filled('medico_id') ? (int) $request->medico_id : null;
-        $metaMensual = $request->filled('meta_mensual') ? max(0, (int) $request->meta_mensual) : null;
+        $medicoId = $request->filled('medico_id')
+            ? (int) $request->input('medico_id')
+            : null;
+
+        $metaMensual = $request->filled('meta_mensual')
+            ? max(0, (int) $request->input('meta_mensual'))
+            : null;
 
         $meses = [
             1 => 'Enero',
@@ -42,23 +55,141 @@ class DashboardController extends Controller
             12 => 'Diciembre',
         ];
 
-        $medicos = Medico::where('activo', true)
+        $medicos = Medico::query()
+            ->where('activo', true)
             ->orderBy('nombre')
             ->get();
 
-        $totalMes = (int) $stats->totalAtencionesMes($anio, $mes, $medicoId);
-        $totalAnio = (int) $stats->totalAtencionesAnio($anio, $medicoId);
-        $promedioDia = (float) $stats->promedioDiarioMes($anio, $mes, $medicoId);
+        /*
+        |--------------------------------------------------------------------------
+        | Indicadores principales
+        |--------------------------------------------------------------------------
+        | EstadisticasService debe contar pacientes únicamente desde el concepto
+        | con orden 19: Total de Pacientes Atendidos.
+        */
 
-        $porMes = collect($stats->atencionesPorMes($anio, $medicoId));
-        $porDia = collect($stats->atencionesPorDia($anio, $mes, $medicoId));
-        $topConceptos = collect($stats->topConceptos($anio, $mes, $medicoId));
-        $topMedicos = collect($stats->topMedicos($anio, $mes));
+        $totalMes = (int) $stats->totalAtencionesMes(
+            $anio,
+            $mes,
+            $medicoId
+        );
+
+        $totalAnio = (int) $stats->totalAtencionesAnio(
+            $anio,
+            $medicoId
+        );
+
+        $promedioDia = (float) $stats->promedioDiarioMes(
+            $anio,
+            $mes,
+            $medicoId
+        );
+
+        $totalMenoresCinco = (int) $stats->totalMenoresCincoMes(
+            $anio,
+            $mes,
+            $medicoId
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Datos para gráficos
+        |--------------------------------------------------------------------------
+        */
+
+        $porMes = collect(
+            $stats->atencionesPorMes($anio, $medicoId)
+        );
+
+        $porDia = collect(
+            $stats->atencionesPorDia($anio, $mes, $medicoId)
+        );
+
+        $topConceptos = collect(
+            $stats->topConceptos($anio, $mes, $medicoId)
+        );
+
+        $topMedicos = collect(
+            $stats->topMedicos($anio, $mes)
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Días laborables
+        |--------------------------------------------------------------------------
+        */
 
         $fechaMes = Carbon::create($anio, $mes, 1);
+
         $diasDelMes = $fechaMes->daysInMonth;
 
+        $diasLaborablesMes = (int) $stats->diasLaborablesMes(
+            $anio,
+            $mes
+        );
+
+        $diasLaborablesEvaluados = (int) $stats->diasLaborablesEvaluados(
+            $anio,
+            $mes
+        );
+
+        $diasConAtencion = (int) $stats->diasConAtencion(
+            $anio,
+            $mes,
+            $medicoId
+        );
+
+        $diasSinRegistro = max(
+            0,
+            $diasLaborablesEvaluados - $diasConAtencion
+        );
+
+        $coberturaRegistro = $diasLaborablesEvaluados > 0
+            ? round(
+                ($diasConAtencion / $diasLaborablesEvaluados) * 100,
+                1
+            )
+            : 0;
+
+        $promedioPorDiaConActividad = $diasConAtencion > 0
+            ? round($totalMes / $diasConAtencion, 1)
+            : 0;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Calidad de datos
+        |--------------------------------------------------------------------------
+        */
+
+        $registrosFinSemana = (int) $stats->registrosFinSemana(
+            $anio,
+            $mes,
+            $medicoId
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Proyección mensual
+        |--------------------------------------------------------------------------
+        | Para meses en curso se proyecta usando los días laborables transcurridos.
+        | Para meses cerrados la proyección coincidirá con el resultado real.
+        */
+
+        $proyeccionMensual = $diasLaborablesEvaluados > 0
+            ? (int) round(
+                ($totalMes / $diasLaborablesEvaluados)
+                    * $diasLaborablesMes
+            )
+            : 0;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Comparación contra mes anterior
+        |--------------------------------------------------------------------------
+        */
+
         $mesAnterior = $fechaMes->copy()->subMonth();
+
         $totalMesAnterior = (int) $stats->totalAtencionesMes(
             (int) $mesAnterior->year,
             (int) $mesAnterior->month,
@@ -66,106 +197,409 @@ class DashboardController extends Controller
         );
 
         $variacionMes = $totalMesAnterior > 0
-            ? round((($totalMes - $totalMesAnterior) / $totalMesAnterior) * 100, 1)
+            ? round(
+                (
+                    ($totalMes - $totalMesAnterior)
+                    / $totalMesAnterior
+                ) * 100,
+                1
+            )
             : null;
 
-        $chartMesesLabels = collect($meses)->values()->map(fn($nombre) => substr($nombre, 0, 3))->values();
+        /*
+        |--------------------------------------------------------------------------
+        | Gráfico anual
+        |--------------------------------------------------------------------------
+        */
 
-        $chartMesesData = collect(range(1, 12))->map(function ($numeroMes) use ($porMes) {
-            return $this->totalDesdeColeccion($porMes, $numeroMes, 'mes');
-        })->values();
+        $chartMesesLabels = collect($meses)
+            ->values()
+            ->map(
+                fn(string $nombre) => mb_substr($nombre, 0, 3)
+            )
+            ->values();
 
-        $chartDiasLabels = collect(range(1, $diasDelMes))->map(fn($dia) => (string) $dia)->values();
+        $chartMesesData = collect(range(1, 12))
+            ->map(function (int $numeroMes) use ($porMes) {
+                return $this->totalDesdeColeccion(
+                    $porMes,
+                    $numeroMes,
+                    'mes'
+                );
+            })
+            ->values();
 
-        $chartDiasData = collect(range(1, $diasDelMes))->map(function ($dia) use ($porDia) {
-            return $this->totalDesdeColeccion($porDia, $dia, 'dia');
-        })->values();
+        /*
+        |--------------------------------------------------------------------------
+        | Gráfico diario
+        |--------------------------------------------------------------------------
+        | Se muestran solamente lunes a viernes.
+        */
 
-        $chartConceptosLabels = $topConceptos->map(function ($item) {
-            $orden = data_get($item, 'concepto.orden');
-            $nombre = data_get($item, 'concepto.nombre', 'N/A');
+        $diasLaborables = collect(range(1, $diasDelMes))
+            ->filter(function (int $dia) use ($anio, $mes) {
+                return Carbon::create(
+                    $anio,
+                    $mes,
+                    $dia
+                )->isWeekday();
+            })
+            ->values();
 
-            return Str::limit(($orden ? $orden . ' - ' : '') . $nombre, 36);
-        })->values();
+        $chartDiasLabels = $diasLaborables
+            ->map(
+                fn(int $dia) => (string) $dia
+            )
+            ->values();
 
-        $chartConceptosData = $topConceptos->map(fn($item) => (int) data_get($item, 'total', 0))->values();
+        $chartDiasData = $diasLaborables
+            ->map(function (int $dia) use ($porDia) {
+                return $this->totalDesdeColeccion(
+                    $porDia,
+                    $dia,
+                    'dia'
+                );
+            })
+            ->values();
 
-        $chartMedicosLabels = $topMedicos->map(function ($item) {
-            return Str::limit(data_get($item, 'medico.nombre', 'N/A'), 32);
-        })->values();
+        $datosDias = $diasLaborables
+            ->map(function (int $dia) use ($porDia) {
+                return [
+                    'dia' => $dia,
+                    'total' => $this->totalDesdeColeccion(
+                        $porDia,
+                        $dia,
+                        'dia'
+                    ),
+                ];
+            });
 
-        $chartMedicosData = $topMedicos->map(fn($item) => (int) data_get($item, 'total', 0))->values();
+        /*
+        |--------------------------------------------------------------------------
+        | Gráfico de conceptos
+        |--------------------------------------------------------------------------
+        */
 
-        $datosDias = collect(range(1, $diasDelMes))->map(function ($dia) use ($porDia) {
-            return [
-                'dia' => $dia,
-                'total' => $this->totalDesdeColeccion($porDia, $dia, 'dia'),
-            ];
-        });
+        $chartConceptosLabels = $topConceptos
+            ->map(function ($item) {
+                $orden = data_get(
+                    $item,
+                    'concepto.orden'
+                );
 
-        $datosMeses = collect(range(1, 12))->map(function ($numeroMes) use ($porMes, $meses) {
-            return [
-                'mes' => $numeroMes,
-                'nombre' => $meses[$numeroMes],
-                'total' => $this->totalDesdeColeccion($porMes, $numeroMes, 'mes'),
-            ];
-        });
+                $nombre = data_get(
+                    $item,
+                    'concepto.nombre',
+                    'Sin nombre'
+                );
 
-        $mejorDia = $datosDias->sortByDesc('total')->first();
-        $mejorMes = $datosMeses->sortByDesc('total')->first();
+                $etiqueta = $orden
+                    ? $orden . ' - ' . $nombre
+                    : $nombre;
 
-        $mesesConMovimiento = $datosMeses->where('total', '>', 0)->count();
-        $promedioMensual = $mesesConMovimiento > 0 ? round($totalAnio / $mesesConMovimiento, 1) : 0;
-        $proyeccionAnual = $mesesConMovimiento > 0 ? round(($totalAnio / $mesesConMovimiento) * 12) : 0;
+                return Str::limit($etiqueta, 42);
+            })
+            ->values();
 
-        $cumplimientoMeta = $metaMensual && $metaMensual > 0
-            ? round(($totalMes / $metaMensual) * 100, 1)
+        $chartConceptosData = $topConceptos
+            ->map(
+                fn($item) => (int) data_get(
+                    $item,
+                    'total',
+                    0
+                )
+            )
+            ->values();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Gráfico de médicos
+        |--------------------------------------------------------------------------
+        */
+
+        $chartMedicosLabels = $topMedicos
+            ->map(function ($item) {
+                return Str::limit(
+                    data_get(
+                        $item,
+                        'medico.nombre',
+                        'Sin nombre'
+                    ),
+                    35
+                );
+            })
+            ->values();
+
+        $chartMedicosData = $topMedicos
+            ->map(
+                fn($item) => (int) data_get(
+                    $item,
+                    'total',
+                    0
+                )
+            )
+            ->values();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Mes de mayor atención
+        |--------------------------------------------------------------------------
+        */
+
+        $datosMeses = collect(range(1, 12))
+            ->map(function (int $numeroMes) use (
+                $porMes,
+                $meses
+            ) {
+                return [
+                    'mes' => $numeroMes,
+                    'nombre' => $meses[$numeroMes],
+                    'total' => $this->totalDesdeColeccion(
+                        $porMes,
+                        $numeroMes,
+                        'mes'
+                    ),
+                ];
+            });
+
+        $mejorDia = $datosDias
+            ->filter(
+                fn(array $item) => $item['total'] > 0
+            )
+            ->sortByDesc('total')
+            ->first();
+
+        $mejorDia = $mejorDia ?? [
+            'dia' => '-',
+            'total' => 0,
+        ];
+
+        $mejorMes = $datosMeses
+            ->filter(
+                fn(array $item) => $item['total'] > 0
+            )
+            ->sortByDesc('total')
+            ->first();
+
+        $mejorMes = $mejorMes ?? [
+            'mes' => null,
+            'nombre' => '-',
+            'total' => 0,
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Promedio y proyección anual
+        |--------------------------------------------------------------------------
+        */
+
+        $mesesConMovimiento = $datosMeses
+            ->where('total', '>', 0)
+            ->count();
+
+        $promedioMensual = $mesesConMovimiento > 0
+            ? round(
+                $totalAnio / $mesesConMovimiento,
+                1
+            )
+            : 0;
+
+        $proyeccionAnual = $mesesConMovimiento > 0
+            ? (int) round(
+                ($totalAnio / $mesesConMovimiento) * 12
+            )
+            : 0;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Meta mensual
+        |--------------------------------------------------------------------------
+        */
+
+        $cumplimientoMeta = $metaMensual !== null
+            && $metaMensual > 0
+            ? round(
+                ($totalMes / $metaMensual) * 100,
+                1
+            )
             : null;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Concepto con mayor movimiento
+        |--------------------------------------------------------------------------
+        | No representa pacientes únicos. Es un indicador operativo de los
+        | servicios o categorías con mayor cantidad registrada.
+        */
 
         $topConcepto = $topConceptos->first();
-        $topConceptoNombre = data_get($topConcepto, 'concepto.nombre', 'Sin datos');
-        $topConceptoCodigo = data_get($topConcepto, 'concepto.orden', '-');
-        $topConceptoTotal = (int) data_get($topConcepto, 'total', 0);
+
+        $topConceptoNombre = data_get(
+            $topConcepto,
+            'concepto.nombre',
+            'Sin datos'
+        );
+
+        $topConceptoCodigo = data_get(
+            $topConcepto,
+            'concepto.orden',
+            '-'
+        );
+
+        $topConceptoTotal = (int) data_get(
+            $topConcepto,
+            'total',
+            0
+        );
 
         $participacionTopConcepto = $totalMes > 0
-            ? round(($topConceptoTotal / $totalMes) * 100, 1)
+            ? round(
+                ($topConceptoTotal / $totalMes) * 100,
+                1
+            )
             : 0;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Médico con mayor volumen
+        |--------------------------------------------------------------------------
+        | La participación se compara contra el total institucional, no contra
+        | la suma parcial de los médicos incluidos en el top.
+        */
 
         $topMedico = $topMedicos->first();
-        $topMedicoNombre = data_get($topMedico, 'medico.nombre', 'Sin datos');
-        $topMedicoTotal = (int) data_get($topMedico, 'total', 0);
-        $totalRankingMedicos = (int) $topMedicos->sum('total');
 
-        $participacionTopMedico = $totalRankingMedicos > 0
-            ? round(($topMedicoTotal / $totalRankingMedicos) * 100, 1)
+        $topMedicoNombre = data_get(
+            $topMedico,
+            'medico.nombre',
+            'Sin datos'
+        );
+
+        $topMedicoTotal = (int) data_get(
+            $topMedico,
+            'total',
+            0
+        );
+
+        $participacionTopMedico = $totalMes > 0
+            ? round(
+                ($topMedicoTotal / $totalMes) * 100,
+                1
+            )
             : 0;
 
-        $resumenMedico = $medicoId
-            ? optional($medicos->firstWhere('id', $medicoId))->nombre
+        /*
+        |--------------------------------------------------------------------------
+        | Médico seleccionado
+        |--------------------------------------------------------------------------
+        */
+
+        $medicoSeleccionado = $medicoId
+            ? $medicos->firstWhere('id', $medicoId)
+            : null;
+
+        $resumenMedico = $medicoSeleccionado
+            ? $medicoSeleccionado->nombre
             : 'Todos los médicos';
+
+        /*
+        |--------------------------------------------------------------------------
+        | Lectura ejecutiva
+        |--------------------------------------------------------------------------
+        */
 
         $lecturaEjecutiva = [];
 
         if ($totalMes === 0) {
-            $lecturaEjecutiva[] = 'No hay atenciones registradas para el filtro seleccionado.';
+            $lecturaEjecutiva[] =
+                'No hay pacientes atendidos registrados para el filtro seleccionado.';
         } else {
-            $lecturaEjecutiva[] = 'El mes registra ' . number_format($totalMes) . ' atenciones para ' . $resumenMedico . '.';
+            $lecturaEjecutiva[] =
+                'Se registran '
+                . number_format($totalMes)
+                . ' pacientes atendidos para '
+                . $resumenMedico
+                . '.';
 
-            if (!is_null($variacionMes)) {
-                $lecturaEjecutiva[] = $variacionMes >= 0
-                    ? 'La actividad subió ' . abs($variacionMes) . '% frente al mes anterior.'
-                    : 'La actividad bajó ' . abs($variacionMes) . '% frente al mes anterior.';
+            $lecturaEjecutiva[] =
+                'El promedio es de '
+                . number_format($promedioDia, 1)
+                . ' pacientes por día laborable evaluado.';
+
+            $lecturaEjecutiva[] =
+                'Se reportó atención en '
+                . $diasConAtencion
+                . ' de '
+                . $diasLaborablesEvaluados
+                . ' días laborables evaluados.';
+
+            if ($diasSinRegistro > 0) {
+                $lecturaEjecutiva[] =
+                    'Existen '
+                    . $diasSinRegistro
+                    . ' días laborables sin pacientes registrados.';
             }
 
-            $lecturaEjecutiva[] = 'El concepto con mayor movimiento representa ' . $participacionTopConcepto . '% del total mensual.';
-            $lecturaEjecutiva[] = 'El día con mayor carga fue el día ' . ($mejorDia['dia'] ?? '-') . ' con ' . number_format($mejorDia['total'] ?? 0) . ' atenciones.';
+            if (!is_null($variacionMes)) {
+                if ($variacionMes > 0) {
+                    $lecturaEjecutiva[] =
+                        'La atención aumentó '
+                        . abs($variacionMes)
+                        . '% respecto al mes anterior.';
+                } elseif ($variacionMes < 0) {
+                    $lecturaEjecutiva[] =
+                        'La atención disminuyó '
+                        . abs($variacionMes)
+                        . '% respecto al mes anterior.';
+                } else {
+                    $lecturaEjecutiva[] =
+                        'La atención se mantuvo igual al mes anterior.';
+                }
+            }
+
+            if (($mejorDia['total'] ?? 0) > 0) {
+                $lecturaEjecutiva[] =
+                    'La mayor carga ocurrió el día '
+                    . $mejorDia['dia']
+                    . ' con '
+                    . number_format($mejorDia['total'])
+                    . ' pacientes atendidos.';
+            }
+
+            if ($totalMenoresCinco > 0) {
+                $porcentajeMenores = round(
+                    ($totalMenoresCinco / $totalMes) * 100,
+                    1
+                );
+
+                $lecturaEjecutiva[] =
+                    'Los menores de cinco años representan '
+                    . $porcentajeMenores
+                    . '% del total mensual.';
+            }
         }
 
+
+
         if (!is_null($cumplimientoMeta)) {
-            $lecturaEjecutiva[] = $cumplimientoMeta >= 100
-                ? 'La meta mensual fue alcanzada. Aquí ya no estamos jugando a la clínica improvisada.'
-                : 'La meta mensual lleva un avance de ' . $cumplimientoMeta . '%.';
+            if ($cumplimientoMeta >= 100) {
+                $lecturaEjecutiva[] =
+                    'La meta mensual fue alcanzada con un cumplimiento de '
+                    . $cumplimientoMeta
+                    . '%.';
+            } else {
+                $lecturaEjecutiva[] =
+                    'La meta mensual presenta un avance de '
+                    . $cumplimientoMeta
+                    . '%.';
+            }
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Vista
+        |--------------------------------------------------------------------------
+        */
 
         return view('dashboard', compact(
             'anio',
@@ -174,16 +608,33 @@ class DashboardController extends Controller
             'metaMensual',
             'meses',
             'medicos',
+
             'totalMes',
             'totalAnio',
+            'totalMenoresCinco',
             'promedioDia',
+
             'porMes',
             'porDia',
             'topConceptos',
             'topMedicos',
+
             'diasDelMes',
+            'diasLaborablesMes',
+            'diasLaborablesEvaluados',
+            'diasConAtencion',
+            'diasSinRegistro',
+            'coberturaRegistro',
+            'promedioPorDiaConActividad',
+            'registrosFinSemana',
+
             'totalMesAnterior',
             'variacionMes',
+
+            'proyeccionMensual',
+            'promedioMensual',
+            'proyeccionAnual',
+
             'chartMesesLabels',
             'chartMesesData',
             'chartDiasLabels',
@@ -192,35 +643,71 @@ class DashboardController extends Controller
             'chartConceptosData',
             'chartMedicosLabels',
             'chartMedicosData',
+
             'mejorDia',
             'mejorMes',
-            'promedioMensual',
-            'proyeccionAnual',
+
             'cumplimientoMeta',
-            'participacionTopConcepto',
+
             'topConceptoNombre',
             'topConceptoCodigo',
             'topConceptoTotal',
+            'participacionTopConcepto',
+
             'topMedicoNombre',
             'topMedicoTotal',
             'participacionTopMedico',
+
             'lecturaEjecutiva',
             'resumenMedico'
         ));
     }
 
-    private function totalDesdeColeccion(Collection $coleccion, int $clave, string $campoClave): int
-    {
+    private function totalDesdeColeccion(
+        Collection $coleccion,
+        int $clave,
+        string $campoClave
+    ): int {
+        /*
+        |--------------------------------------------------------------------------
+        | Colección indexada por clave
+        |--------------------------------------------------------------------------
+        */
+
         $directo = $coleccion->get($clave);
 
         if (!is_null($directo)) {
-            return (int) data_get($directo, 'total', 0);
+            if (is_numeric($directo)) {
+                return (int) $directo;
+            }
+
+            return (int) data_get(
+                $directo,
+                'total',
+                0
+            );
         }
 
-        $encontrado = $coleccion->first(function ($item) use ($clave, $campoClave) {
-            return (int) data_get($item, $campoClave, -1) === $clave;
-        });
+        /*
+        |--------------------------------------------------------------------------
+        | Colección sin indexar
+        |--------------------------------------------------------------------------
+        */
 
-        return (int) data_get($encontrado, 'total', 0);
+        $encontrado = $coleccion->first(
+            function ($item) use ($clave, $campoClave) {
+                return (int) data_get(
+                    $item,
+                    $campoClave,
+                    -1
+                ) === $clave;
+            }
+        );
+
+        return (int) data_get(
+            $encontrado,
+            'total',
+            0
+        );
     }
 }
