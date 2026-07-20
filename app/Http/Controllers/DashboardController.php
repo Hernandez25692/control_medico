@@ -388,19 +388,48 @@ class DashboardController extends Controller
         ];
 
         /*
-        |--------------------------------------------------------------------------
-        | Promedio y proyección anual
-        |--------------------------------------------------------------------------
-        */
+|--------------------------------------------------------------------------
+| Promedio y proyección anual
+|--------------------------------------------------------------------------
+| La proyección toma únicamente los meses hasta el periodo seleccionado.
+| Si el periodo corresponde al mes actual, utiliza la proyección mensual
+| para evitar proyectar con un mes todavía incompleto.
+*/
 
-        $mesesConMovimiento = $datosMeses
+        $datosHastaMes = $datosMeses
+            ->where('mes', '<=', $mes);
+
+        $acumuladoHastaMes = (int) $datosHastaMes
+            ->sum('total');
+
+        $mesesConMovimiento = $datosHastaMes
             ->where('total', '>', 0)
             ->count();
 
-        $promedioMensual = $mesesConMovimiento > 0
+        $mesesEvaluados = max(1, $mes);
+
+        $esMesActual = $anio === (int) now()->year
+            && $mes === (int) now()->month;
+
+        $acumuladoAjustado = $acumuladoHastaMes;
+
+        if ($esMesActual) {
+            $acumuladoAjustado =
+                $acumuladoHastaMes
+                - $totalMes
+                + $proyeccionMensual;
+        }
+
+        $promedioMensual = $mesesEvaluados > 0
             ? round(
-                $totalAnio / $mesesConMovimiento,
+                $acumuladoAjustado / $mesesEvaluados,
                 1
+            )
+            : 0;
+
+        $proyeccionAnual = $mesesEvaluados > 0
+            ? (int) round(
+                ($acumuladoAjustado / $mesesEvaluados) * 12
             )
             : 0;
 
@@ -659,7 +688,10 @@ class DashboardController extends Controller
             'participacionTopMedico',
 
             'lecturaEjecutiva',
-            'resumenMedico'
+            'resumenMedico',
+            'acumuladoHastaMes',
+            'mesesEvaluados',
+            'mesesConMovimiento',
         ));
     }
 

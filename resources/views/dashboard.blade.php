@@ -1,608 +1,482 @@
 @extends('adminlte::page')
 
-@section('title', 'Centro de Decisiones')
+@section('title', 'Medical Command Center')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center flex-wrap">
-        <div>
-            <h1 class="mb-0 font-weight-bold">
-                Centro de Decisiones
-            </h1>
-
-            <small class="text-muted">
-                Indicadores reales de pacientes, productividad médica,
-                cobertura operativa y calidad del registro.
-            </small>
-        </div>
-
-        <div class="mt-2 mt-md-0 d-flex align-items-center flex-wrap" style="gap: 8px;">
-            <span class="live-pill">
-                <span class="live-dot"></span>
-                Datos en vivo
-            </span>
-
-            <span class="badge badge-primary p-2">
-                <i class="fas fa-calendar-alt mr-1"></i>
-                {{ $meses[$mes] ?? $mes }} {{ $anio }}
-            </span>
-        </div>
-    </div>
+    {{-- Se integra en el hero --}}
 @stop
 
 @section('css')
-
+    {{-- Fuentes premium --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"
         rel="stylesheet">
 
     <style>
+        /* ================================================================
+                                               VARIABLES DE MARCA
+                                            ================================================================ */
         :root {
-            --navy: #0B3B5C;
-            --navy-dark: #082A44;
-            --navy-deeper: #051D30;
-            --teal: #1E8A75;
-            --teal-light: #2FB39A;
-            --teal-tint: #E4F5F1;
-            --amber: #B9821E;
-            --amber-tint: #FFF6E0;
-            --gold: #A67C1E;
-            --gold-tint: #FBF3DC;
-            --coral: #B3434B;
-            --coral-tint: #FBE7E8;
-            --plum: #6D4AA6;
-            --plum-tint: #EEE7F7;
-            --sky: #1C7FA0;
-            --sky-tint: #E1F1F6;
-            --navy-tint: #E5EDF3;
-
-            --dashboard-primary: var(--teal);
-            --dashboard-dark: #16232E;
-            --dashboard-muted: #64748b;
-            --dashboard-border: #E2E8ED;
-            --dashboard-background: #F5F8FA;
+            --primary-dark: #0A2647;
+            --primary-mid: #144272;
+            --accent-teal: #0F9D8A;
+            --accent-teal-light: #2DD4BF;
+            --accent-gold: #C89B3C;
+            --accent-coral: #D65A5A;
+            --accent-plum: #7B5EA7;
+            --accent-sky: #3B8FC2;
+            --surface-bg: #F4F8FA;
+            --card-bg: rgba(255, 255, 255, 0.96);
+            --card-border: rgba(200, 215, 225, 0.6);
+            --text-dark: #1A2E3F;
+            --text-muted: #6B7F8D;
+            --shadow-sm: 0 8px 24px rgba(10, 38, 71, 0.07);
+            --shadow-md: 0 16px 40px rgba(10, 38, 71, 0.10);
+            --shadow-lg: 0 24px 60px rgba(10, 38, 71, 0.15);
+            --radius-card: 20px;
+            --radius-sm: 12px;
         }
 
+        /* ================================================================
+                                               ESTILOS GLOBALES
+                                            ================================================================ */
         .content-wrapper {
-            background: var(--dashboard-background);
+            background: radial-gradient(circle at 80% 10%, rgba(45, 212, 191, 0.06), transparent 30rem),
+                var(--surface-bg);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
 
-        body,
-        .card,
-        .btn,
-        .form-control,
-        .badge,
-        .status-badge {
-            font-family: 'Inter', sans-serif;
+        .content {
+            padding-top: 10px;
         }
 
         h1,
         h2,
         h3,
-        .card-title {
+        .card-title,
+        .metric-value {
             font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.02em;
         }
 
-        .decision-hero {
+        .badge,
+        .status-badge,
+        .metric-label,
+        .health-stat-title {
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        /* ================================================================
+                                               HERO - MEDICAL COMMAND CENTER
+                                            ================================================================ */
+        .command-hero {
             position: relative;
             overflow: hidden;
-            padding: 28px 25px;
-            color: #ffffff;
-            border-radius: 20px;
-            background: linear-gradient(135deg,
-                    var(--navy-deeper) 0%,
-                    var(--navy-dark) 48%,
-                    var(--navy) 100%);
-            background-size: 180% 180%;
-            box-shadow: 0 18px 40px rgba(5, 29, 48, .32);
-            animation: heroDrift 14s ease-in-out infinite, fadeInUp .5s ease both;
+            padding: 32px 32px 28px;
+            border-radius: var(--radius-card);
+            background: radial-gradient(circle at 70% 20%, rgba(45, 212, 191, 0.20), transparent 45%),
+                linear-gradient(135deg, #071827 0%, #0A2A44 55%, #0F4F4A 100%);
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: #fff;
         }
 
-        @keyframes heroDrift {
-
-            0%,
-            100% {
-                background-position: 0% 50%;
-            }
-
-            50% {
-                background-position: 100% 50%;
-            }
-        }
-
-        .decision-hero::before,
-        .decision-hero::after {
-            content: "";
+        .command-hero::before {
+            content: '';
             position: absolute;
-            border-radius: 50%;
-            background: rgba(47, 179, 154, .14);
-            animation: floatSlow 8s ease-in-out infinite;
-        }
-
-        .decision-hero::before {
-            width: 230px;
-            height: 230px;
-            top: -110px;
-            right: -60px;
-        }
-
-        .decision-hero::after {
-            width: 140px;
-            height: 140px;
-            right: 100px;
-            bottom: -90px;
-            background: rgba(255, 255, 255, .06);
-            animation-delay: -3s;
-        }
-
-        @keyframes floatSlow {
-
-            0%,
-            100% {
-                transform: translateY(0) scale(1);
-            }
-
-            50% {
-                transform: translateY(-12px) scale(1.05);
-            }
-        }
-
-        .hero-ekg {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 18px;
-            width: 100%;
-            height: 46px;
-            z-index: 0;
-            opacity: .35;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.3;
             pointer-events: none;
         }
 
-        .hero-ekg path {
+        .command-hero .hero-ekg {
+            position: absolute;
+            bottom: 12px;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            opacity: 0.25;
+            pointer-events: none;
+        }
+
+        .command-hero .hero-ekg path {
+            stroke: var(--accent-teal-light);
+            stroke-width: 2.5;
             fill: none;
-            stroke: var(--teal-light);
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            filter: drop-shadow(0 0 5px rgba(47, 179, 154, .5));
+            filter: drop-shadow(0 0 8px rgba(45, 212, 191, 0.4));
         }
 
-        .decision-hero .row {
+        .hero-content {
             position: relative;
-            z-index: 1;
+            z-index: 2;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .decision-hero h2 {
-            margin-bottom: 5px;
+        .hero-left .hero-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(45, 212, 191, 0.12);
+            border: 1px solid rgba(45, 212, 191, 0.20);
+            border-radius: 999px;
+            padding: 4px 14px 4px 10px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #A6F0E0;
+        }
+
+        .hero-left h1 {
+            font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+            font-weight: 700;
+            margin: 10px 0 6px;
+            color: #fff;
+            letter-spacing: -0.04em;
+            line-height: 1.2;
+        }
+
+        .hero-left p {
+            color: #C5D8E3;
+            max-width: 580px;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+
+        .hero-right {
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: var(--radius-sm);
+            padding: 18px 24px;
+            min-width: 200px;
+            text-align: right;
+        }
+
+        .hero-right .period-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #9AB8C9;
+        }
+
+        .hero-right .period-value {
+            font-size: 1.4rem;
             font-weight: 700;
             color: #fff;
-            letter-spacing: -0.01em;
+            margin-top: 2px;
         }
 
-        .decision-hero p {
-            max-width: 920px;
-            opacity: .88;
+        .hero-right .doctor-name {
+            font-size: 0.9rem;
+            color: var(--accent-teal-light);
+            font-weight: 600;
         }
-
-        /* ---------- Badge "en vivo" ---------- */
 
         .live-pill {
             display: inline-flex;
             align-items: center;
-            gap: 7px;
-            padding: 7px 12px;
+            gap: 6px;
+            margin-top: 8px;
+            background: rgba(45, 212, 191, 0.15);
+            padding: 2px 12px;
             border-radius: 999px;
-            background: var(--teal-tint);
-            color: #146455;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.04em;
+            font-size: 10px;
+            color: #A6F0E0;
         }
 
         .live-dot {
-            width: 7px;
-            height: 7px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            background: var(--teal);
-            animation: pulseDot 2s ease-in-out infinite;
+            background: var(--accent-teal-light);
+            display: inline-block;
+            animation: pulseDot 2s infinite;
         }
 
         @keyframes pulseDot {
             0% {
-                box-shadow: 0 0 0 0 rgba(30, 138, 117, .5);
+                opacity: 0.6;
+                transform: scale(1);
             }
 
-            70% {
-                box-shadow: 0 0 0 6px rgba(30, 138, 117, 0);
+            50% {
+                opacity: 1;
+                transform: scale(1.2);
             }
 
             100% {
-                box-shadow: 0 0 0 0 rgba(30, 138, 117, 0);
+                opacity: 0.6;
+                transform: scale(1);
             }
         }
 
-        @media (prefers-reduced-motion: reduce) {
-
-            .decision-hero,
-            .decision-hero::before,
-            .decision-hero::after,
-            .live-dot,
-            .metric-card,
-            .decision-card {
-                animation: none !important;
-            }
-        }
-
-        .filter-card,
-        .metric-card,
-        .decision-card {
-            border: 0;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(11, 59, 92, .07);
-        }
-
-        .decision-card {
-            transition: box-shadow .25s ease, transform .25s ease;
-            animation: fadeInUp .5s ease both;
-        }
-
-        .decision-card:hover {
-            box-shadow: 0 16px 34px rgba(11, 59, 92, .12);
-        }
-
-        .decision-card .card-header {
+        /* ================================================================
+                                               FILTROS SUPERPUESTOS
+                                            ================================================================ */
+        .filter-overlay {
+            margin-top: -18px;
             position: relative;
+            z-index: 5;
+            background: var(--card-bg);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-sm);
+            padding: 12px 16px;
         }
 
-        .decision-card .card-header i.fas {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 34px;
-            height: 34px;
+        .filter-overlay .form-control {
+            height: 40px;
             border-radius: 10px;
-            font-size: 15px;
-            background: var(--teal-tint);
-            color: var(--teal) !important;
+            border: 1px solid #DDE8EE;
+            background: #F9FCFD;
+            font-size: 0.875rem;
+            transition: all 0.2s;
         }
 
-        .filter-card .card-body {
-            padding: 20px;
+        .filter-overlay .form-control:focus {
+            border-color: var(--accent-teal);
+            box-shadow: 0 0 0 3px rgba(15, 157, 138, 0.15);
         }
 
-        .filter-card label {
-            color: var(--dashboard-dark);
-            font-size: 11.5px;
+        .filter-overlay label {
+            font-size: 0.65rem;
             font-weight: 700;
-            letter-spacing: 0.06em;
             text-transform: uppercase;
-            font-family: 'IBM Plex Mono', monospace;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 2px;
         }
 
-        .filter-card .form-control {
-            height: 42px;
-            border-color: var(--dashboard-border);
+        .filter-overlay .btn-primary {
+            height: 40px;
             border-radius: 10px;
-            font-size: 13.5px;
-        }
-
-        .filter-card .form-control:focus {
-            border-color: var(--teal);
-            box-shadow: 0 0 0 3px rgba(30, 138, 117, .12);
-        }
-
-        .btn-rounded {
-            height: 42px;
-            border-radius: 10px;
-            font-weight: 700;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--teal) 0%, #17705F 100%);
+            background: linear-gradient(135deg, var(--accent-teal), #0C7A6A);
             border: none;
-            box-shadow: 0 10px 20px -8px rgba(30, 138, 117, .5);
+            font-weight: 600;
+            box-shadow: 0 8px 18px rgba(15, 157, 138, 0.30);
+            transition: all 0.25s;
         }
 
-        .btn-primary:hover,
-        .btn-primary:focus {
-            background: linear-gradient(135deg, #1c7c69 0%, #146253 100%);
+        .filter-overlay .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(15, 157, 138, 0.40);
         }
 
-        .metric-card {
+        /* ================================================================
+                                               TARJETAS DE INDICADORES (Power BI / Excel style)
+                                            ================================================================ */
+        .kpi-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-card);
+            padding: 18px 20px 16px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
             position: relative;
-            min-height: 164px;
-            padding: 18px;
             overflow: hidden;
-            background: #ffffff;
-            border-top: 3px solid transparent;
-            transition: transform .22s cubic-bezier(.2, .8, .3, 1), box-shadow .22s ease, border-color .22s ease;
-            animation: fadeInUp .45s ease both;
         }
 
-        .row>div:nth-child(1) .metric-card {
-            animation-delay: .02s;
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            border-color: rgba(15, 157, 138, 0.3);
         }
 
-        .row>div:nth-child(2) .metric-card {
-            animation-delay: .06s;
+        .kpi-card .kpi-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
         }
 
-        .row>div:nth-child(3) .metric-card {
-            animation-delay: .10s;
-        }
-
-        .row>div:nth-child(4) .metric-card {
-            animation-delay: .14s;
-        }
-
-        .row>div:nth-child(5) .metric-card {
-            animation-delay: .18s;
-        }
-
-        .row>div:nth-child(6) .metric-card {
-            animation-delay: .22s;
-        }
-
-        .row>div:nth-child(7) .metric-card {
-            animation-delay: .26s;
-        }
-
-        .row>div:nth-child(8) .metric-card {
-            animation-delay: .30s;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .metric-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 16px 32px rgba(11, 59, 92, .16);
-            border-top-color: var(--teal);
-        }
-
-        .metric-card:hover .metric-icon {
-            transform: scale(1.08) rotate(-4deg);
-        }
-
-        .metric-card::after {
-            content: "";
-            position: absolute;
-            width: 90px;
-            height: 90px;
-            right: -38px;
-            bottom: -38px;
-            border-radius: 50%;
-            background: rgba(11, 59, 92, .04);
-        }
-
-        .metric-icon {
+        .kpi-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 46px;
-            height: 46px;
-            margin-bottom: 13px;
-            border-radius: 14px;
-            font-size: 20px;
-            position: relative;
-            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .04);
-            transition: transform .25s cubic-bezier(.2, .8, .3, 1);
+            font-size: 1.2rem;
+            background: var(--surface-bg);
+            color: var(--primary-mid);
         }
 
-        .metric-icon::before {
-            content: "";
-            position: absolute;
-            inset: -5px;
-            border-radius: 16px;
-            border: 1px solid currentColor;
-            opacity: .16;
-        }
-
-        .metric-label {
-            color: var(--dashboard-muted);
-            font-size: 11.5px;
-            font-weight: 700;
-            letter-spacing: .06em;
+        .kpi-badge {
+            font-size: 0.6rem;
+            font-weight: 600;
             text-transform: uppercase;
-            font-family: 'IBM Plex Mono', monospace;
+            letter-spacing: 0.05em;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(15, 157, 138, 0.10);
+            color: var(--accent-teal);
         }
 
-        .metric-value {
-            margin-top: 5px;
-            color: var(--dashboard-dark);
-            font-size: 28px;
+        .kpi-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-top: 10px;
+        }
+
+        .kpi-value {
+            font-size: 2.2rem;
             font-weight: 700;
+            color: var(--text-dark);
             line-height: 1.1;
-            font-family: 'Space Grotesk', sans-serif;
+            margin-top: 2px;
         }
 
-        .metric-value-name {
-            min-height: 33px;
-            font-size: 17px;
-            line-height: 1.2;
+        .kpi-foot {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+            padding-top: 8px;
         }
 
-        .metric-foot {
-            position: relative;
-            z-index: 2;
-            margin-top: 9px;
-            color: var(--dashboard-muted);
-            font-size: 12.5px;
+        /* Variantes de color para iconos */
+        .kpi-icon.teal {
+            background: rgba(15, 157, 138, 0.12);
+            color: var(--accent-teal);
         }
 
-        /* ---------- Paleta de iconos coordinada con la marca ---------- */
-
-        .icon-blue {
-            color: var(--navy);
-            background: var(--navy-tint);
+        .kpi-icon.navy {
+            background: rgba(10, 38, 71, 0.10);
+            color: var(--primary-dark);
         }
 
-        .icon-green {
-            color: var(--teal);
-            background: var(--teal-tint);
+        .kpi-icon.gold {
+            background: rgba(200, 155, 60, 0.12);
+            color: var(--accent-gold);
         }
 
-        .icon-orange {
-            color: var(--amber);
-            background: var(--amber-tint);
+        .kpi-icon.coral {
+            background: rgba(214, 90, 90, 0.12);
+            color: var(--accent-coral);
         }
 
-        .icon-red {
-            color: var(--coral);
-            background: var(--coral-tint);
+        .kpi-icon.plum {
+            background: rgba(123, 94, 167, 0.12);
+            color: var(--accent-plum);
         }
 
-        .icon-purple {
-            color: var(--plum);
-            background: var(--plum-tint);
+        .kpi-icon.sky {
+            background: rgba(59, 143, 194, 0.12);
+            color: var(--accent-sky);
         }
 
-        .icon-cyan {
-            color: var(--sky);
-            background: var(--sky-tint);
+        /* ================================================================
+                                               TARJETAS DE GRÁFICAS UNIFORMES
+                                            ================================================================ */
+        .chart-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-sm);
+            padding: 18px 18px 12px;
+            height: 100%;
+            transition: all 0.25s;
         }
 
-        .icon-yellow {
-            color: var(--gold);
-            background: var(--gold-tint);
+        .chart-card:hover {
+            box-shadow: var(--shadow-md);
         }
 
-        .icon-teal {
-            color: #146455;
-            background: #D9F0EA;
+        .chart-card .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
         }
 
-        .decision-card .card-header {
-            padding: 18px 20px 8px;
-            border: 0;
-            background: #ffffff;
-        }
-
-        .decision-card .card-header .card-title {
+        .chart-card .chart-title {
             font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text-dark);
+            margin: 0;
         }
 
-        .decision-card .card-body {
-            padding: 18px 20px 20px;
+        .chart-card .chart-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 2px;
         }
 
         .chart-box {
+            height: 280px;
             position: relative;
-            height: 340px;
         }
 
         .chart-box-sm {
-            position: relative;
-            height: 315px;
+            height: 220px;
         }
 
-        .decision-list {
-            padding-left: 0;
-            margin-bottom: 0;
-            list-style: none;
+        /* ================================================================
+                                               META MENSUAL (Barra premium)
+                                            ================================================================ */
+        .meta-progress {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-card);
+            padding: 18px 22px;
+            box-shadow: var(--shadow-sm);
         }
 
-        .decision-list li {
+        .meta-progress .meta-header {
             display: flex;
-            gap: 10px;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--dashboard-border);
-            color: #334155;
-            font-size: 13.5px;
-        }
-
-        .decision-list li:last-child {
-            border-bottom: 0;
-        }
-
-        .decision-list i {
-            margin-top: 3px;
-            color: var(--teal);
-        }
-
-        .quality-alert {
-            height: 100%;
-            margin-bottom: 0;
-            border: 0;
-            border-radius: 14px;
-            box-shadow: 0 7px 18px rgba(11, 59, 92, .06);
-        }
-
-        .alert-warning.quality-alert {
-            background: var(--amber-tint);
-            color: #7a5a10;
-            border-left: 4px solid var(--amber);
-        }
-
-        .indicator-row {
-            display: flex;
-            align-items: center;
             justify-content: space-between;
-            padding: 13px 0;
-            border-bottom: 1px solid var(--dashboard-border);
+            align-items: center;
+            margin-bottom: 8px;
         }
 
-        .indicator-row:last-child {
-            border-bottom: 0;
+        .meta-progress .meta-label {
+            font-weight: 600;
+            color: var(--text-dark);
         }
 
-        .indicator-title {
-            color: #475569;
-            font-size: 13px;
-        }
-
-        .indicator-value {
-            color: var(--dashboard-dark);
-            font-size: 17px;
+        .meta-progress .meta-percent {
             font-weight: 700;
-            font-family: 'Space Grotesk', sans-serif;
+            color: var(--accent-teal);
         }
 
-        .progress-thin {
-            height: 9px;
+        .progress-bar-premium {
+            height: 12px;
             border-radius: 999px;
-            background: var(--dashboard-border);
-        }
-
-        .progress-thin .progress-bar {
-            border-radius: 999px;
-        }
-
-        .progress-thin .progress-bar.bg-primary {
-            background: var(--teal) !important;
-        }
-
-        .progress-thin .progress-bar.bg-success {
-            background: var(--teal-light) !important;
-        }
-
-        .progress-thin .progress-bar {
-            position: relative;
+            background: #E9F0F4;
             overflow: hidden;
-            transition: width 1s cubic-bezier(.2, .8, .3, 1);
+            position: relative;
         }
 
-        .progress-thin .progress-bar::after {
-            content: "";
+        .progress-bar-premium .bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent-teal), var(--accent-teal-light));
+            transition: width 1.2s cubic-bezier(0.2, 0.9, 0.4, 1);
+            position: relative;
+            box-shadow: 0 0 12px rgba(15, 157, 138, 0.4);
+        }
+
+        .progress-bar-premium .bar-fill::after {
+            content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(90deg,
-                    transparent,
-                    rgba(255, 255, 255, .35),
-                    transparent);
-            animation: shimmer 2.2s ease-in-out infinite;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: shimmer 2.4s ease-in-out infinite;
         }
 
         @keyframes shimmer {
@@ -615,97 +489,164 @@
             }
         }
 
-        .health-stat {
-            padding: 15px;
-            border: 1px solid var(--dashboard-border);
-            border-radius: 13px;
-            background: #ffffff;
+        .meta-details {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-top: 6px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
         }
 
-        .health-stat-title {
-            color: var(--dashboard-muted);
-            font-size: 11.5px;
+        .meta-details strong {
+            color: var(--text-dark);
+        }
+
+        /* ================================================================
+                                               ALERTAS DE CALIDAD (más visibles)
+                                            ================================================================ */
+        .alert-quality {
+            border-radius: var(--radius-sm);
+            border: none;
+            padding: 14px 20px;
+            background: #FFF8E7;
+            border-left: 6px solid var(--accent-gold);
+            box-shadow: var(--shadow-sm);
+            color: #7A6310;
+        }
+
+        .alert-quality .alert-icon {
+            font-size: 1.8rem;
+            margin-right: 14px;
+            opacity: 0.9;
+        }
+
+        .alert-quality strong {
+            display: block;
+            font-size: 1rem;
+        }
+
+        /* ================================================================
+                                               LECTURA EJECUTIVA E HITOS COMBINADOS
+                                            ================================================================ */
+        .executive-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-card);
+            padding: 18px 20px;
+            box-shadow: var(--shadow-sm);
+            height: 100%;
+        }
+
+        .executive-card .exec-title {
             font-weight: 700;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            font-family: 'IBM Plex Mono', monospace;
+            font-size: 1rem;
+            color: var(--text-dark);
+            margin-bottom: 12px;
         }
 
-        .health-stat-value {
-            margin-top: 5px;
-            color: var(--dashboard-dark);
-            font-size: 23px;
+        .executive-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .executive-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            font-size: 0.9rem;
+            color: var(--text-dark);
+        }
+
+        .executive-list li:last-child {
+            border-bottom: none;
+        }
+
+        .executive-list li i {
+            color: var(--accent-teal);
+            margin-top: 3px;
+        }
+
+        .milestone-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+        }
+
+        .milestone-row:last-child {
+            border-bottom: none;
+        }
+
+        .milestone-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .milestone-value {
             font-weight: 700;
-            font-family: 'Space Grotesk', sans-serif;
+            color: var(--text-dark);
         }
 
-        .health-stat-foot {
-            margin-top: 4px;
-            color: var(--dashboard-muted);
-            font-size: 12px;
-        }
-
-        .badge-soft-success {
-            color: #146455;
-            background: var(--teal-tint);
-        }
-
-        .badge-soft-warning {
-            color: #7a5a10;
-            background: var(--amber-tint);
-        }
-
-        .badge-soft-danger {
-            color: #7a2b30;
-            background: var(--coral-tint);
-        }
-
-        .badge-soft-primary {
-            color: var(--navy);
-            background: var(--navy-tint);
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 5px 9px;
-            border-radius: 999px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .badge-primary {
-            background: var(--navy) !important;
-            font-family: 'IBM Plex Mono', monospace;
-            font-weight: 600;
-            letter-spacing: 0.03em;
-            border-radius: 999px;
-            padding: 7px 12px !important;
-        }
-
-        .text-success {
-            color: var(--teal) !important;
-        }
-
-        .text-danger {
-            color: var(--coral) !important;
-        }
-
-        .text-primary {
-            color: var(--navy) !important;
-        }
-
-        @media (max-width: 767px) {
-            .decision-hero {
-                padding: 19px;
+        /* ================================================================
+                                               RESPONSIVE
+                                            ================================================================ */
+        @media (max-width: 767.98px) {
+            .command-hero {
+                padding: 20px 18px;
+                border-radius: 18px;
             }
 
-            .metric-value {
-                font-size: 25px;
+            .hero-left h1 {
+                font-size: 1.8rem;
             }
 
-            .chart-box,
+            .hero-right {
+                margin-top: 14px;
+                text-align: left;
+                width: 100%;
+            }
+
+            .filter-overlay {
+                margin-top: -12px;
+                padding: 12px;
+            }
+
+            .filter-overlay .row>div {
+                margin-bottom: 8px;
+            }
+
+            .kpi-value {
+                font-size: 1.8rem;
+            }
+
+            .chart-box {
+                height: 220px;
+            }
+
             .chart-box-sm {
-                height: 280px;
+                height: 180px;
+            }
+
+            .meta-progress {
+                padding: 14px 16px;
+            }
+
+            .executive-card .exec-title {
+                font-size: 0.95rem;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .kpi-value {
+                font-size: 2rem;
+            }
+
+            .chart-box {
+                height: 250px;
             }
         }
     </style>
@@ -716,1012 +657,577 @@
     @php
         /*
         |--------------------------------------------------------------------------
-        | Valores seguros
+        | Valores seguros (misma lógica)
         |--------------------------------------------------------------------------
-        | Los valores por defecto evitan errores visuales mientras se integra
-        | completamente el servicio de estadísticas.
         */
-
         $fmt = fn($numero) => number_format((float) $numero, 0, '.', ',');
         $fmtDecimal = fn($numero) => number_format((float) $numero, 1, '.', ',');
 
         $mesNombre = $meses[$mes] ?? $mes;
-
         $totalMes = $totalMes ?? 0;
         $totalAnio = $totalAnio ?? 0;
         $promedioDia = $promedioDia ?? 0;
-
         $diasDelMes = $diasDelMes ?? 0;
         $diasLaborablesMes = $diasLaborablesMes ?? 0;
         $diasLaborablesEvaluados = $diasLaborablesEvaluados ?? 0;
         $diasConAtencion = $diasConAtencion ?? 0;
         $diasSinRegistro = $diasSinRegistro ?? 0;
-
         $coberturaRegistro = $coberturaRegistro ?? 0;
         $promedioPorDiaConActividad = $promedioPorDiaConActividad ?? 0;
         $proyeccionMensual = $proyeccionMensual ?? 0;
         $registrosFinSemana = $registrosFinSemana ?? 0;
         $totalMenoresCinco = $totalMenoresCinco ?? 0;
-
         $promedioMensual = $promedioMensual ?? 0;
         $proyeccionAnual = $proyeccionAnual ?? 0;
-
+        $acumuladoHastaMes = $acumuladoHastaMes ?? 0;
+        $mesesEvaluados = $mesesEvaluados ?? 0;
+        $mesesConMovimiento = $mesesConMovimiento ?? 0;
         $variacionMes = $variacionMes ?? null;
         $cumplimientoMeta = $cumplimientoMeta ?? null;
-
         $topConceptoNombre = $topConceptoNombre ?? 'Sin datos';
         $topConceptoCodigo = $topConceptoCodigo ?? '-';
         $topConceptoTotal = $topConceptoTotal ?? 0;
         $participacionTopConcepto = $participacionTopConcepto ?? 0;
-
         $topMedicoNombre = $topMedicoNombre ?? 'Sin datos';
         $topMedicoTotal = $topMedicoTotal ?? 0;
         $participacionTopMedico = $participacionTopMedico ?? 0;
-
         $mejorDia = $mejorDia ?? ['dia' => '-', 'total' => 0];
         $mejorMes = $mejorMes ?? ['nombre' => '-', 'total' => 0];
-
         $lecturaEjecutiva = $lecturaEjecutiva ?? [];
         $resumenMedico = $resumenMedico ?? 'Todos los médicos';
-
         $porcentajeMenoresCinco = $totalMes > 0 ? round(($totalMenoresCinco / $totalMes) * 100, 1) : 0;
-
         $productividadEsperada = $diasLaborablesMes > 0 ? round($proyeccionMensual / $diasLaborablesMes, 1) : 0;
-
         $faltanteMeta = $metaMensual && $metaMensual > $totalMes ? $metaMensual - $totalMes : 0;
 
         $estadoCobertura = match (true) {
-            $coberturaRegistro >= 95 => [
-                'texto' => 'Óptima',
-                'clase' => 'badge-soft-success',
-            ],
-            $coberturaRegistro >= 80 => [
-                'texto' => 'Aceptable',
-                'clase' => 'badge-soft-warning',
-            ],
-            default => [
-                'texto' => 'Requiere revisión',
-                'clase' => 'badge-soft-danger',
-            ],
+            $coberturaRegistro >= 95 => ['texto' => 'Óptima', 'clase' => 'badge-soft-success'],
+            $coberturaRegistro >= 80 => ['texto' => 'Aceptable', 'clase' => 'badge-soft-warning'],
+            default => ['texto' => 'Requiere revisión', 'clase' => 'badge-soft-danger'],
         };
 
         $estadoVariacion = match (true) {
-            is_null($variacionMes) => [
-                'texto' => 'Sin comparación',
-                'clase' => 'text-muted',
-                'icono' => 'fa-minus',
-            ],
-            $variacionMes > 0 => [
-                'texto' => 'Incremento',
-                'clase' => 'text-success',
-                'icono' => 'fa-arrow-up',
-            ],
-            $variacionMes < 0 => [
-                'texto' => 'Disminución',
-                'clase' => 'text-danger',
-                'icono' => 'fa-arrow-down',
-            ],
-            default => [
-                'texto' => 'Sin cambio',
-                'clase' => 'text-muted',
-                'icono' => 'fa-equals',
-            ],
+            is_null($variacionMes) => ['texto' => 'Sin comparación', 'clase' => 'text-muted', 'icono' => 'fa-minus'],
+            $variacionMes > 0 => ['texto' => 'Incremento', 'clase' => 'text-success', 'icono' => 'fa-arrow-up'],
+            $variacionMes < 0 => ['texto' => 'Disminución', 'clase' => 'text-danger', 'icono' => 'fa-arrow-down'],
+            default => ['texto' => 'Sin cambio', 'clase' => 'text-muted', 'icono' => 'fa-equals'],
         };
     @endphp
 
     {{-- ================================================================
-        ENCABEZADO EJECUTIVO
-    ================================================================= --}}
-
-    <div class="decision-hero mb-4">
-        <svg class="hero-ekg" viewBox="0 0 900 90" preserveAspectRatio="none" aria-hidden="true">
+        HERO
+    ================================================================ --}}
+    <div class="command-hero">
+        <svg class="hero-ekg" viewBox="0 0 900 60" preserveAspectRatio="none" aria-hidden="true">
             <path
-                d="M0,45 L260,45 L278,45 L290,15 L305,78 L320,30 L335,45 L520,45 L538,45 L550,15 L565,78 L580,30 L595,45 L900,45" />
+                d="M0,30 L200,30 L220,30 L235,8 L255,52 L270,20 L290,30 L450,30 L470,30 L485,8 L505,52 L520,20 L540,30 L900,30" />
         </svg>
-
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h2>Panorama de pacientes atendidos</h2>
-
-                <p class="mb-0">
-                    Análisis basado en el indicador oficial
-                    <strong>Total de Pacientes Atendidos</strong>,
-                    considerando únicamente días laborables de lunes a viernes.
-                </p>
+        <div class="hero-content">
+            <div class="hero-left">
+                <span class="hero-kicker"><i class="fas fa-heartbeat"></i> Medical Command Center</span>
+                <h1>Panorama de Productividad Médica</h1>
+                <p>Monitoreo ejecutivo de la actividad asistencial.</p>
+                
             </div>
-
-            <div class="col-md-4 text-md-right mt-3 mt-md-0">
-                <div class="h5 mb-1">
-                    {{ $resumenMedico }}
-                </div>
-
-                <small class="d-block">
-                    Periodo evaluado
-                </small>
-
-                <strong>
-                    {{ $mesNombre }} {{ $anio }}
-                </strong>
+            <div class="hero-right">
+                <div class="period-label">Periodo evaluado</div>
+                <div class="period-value">{{ $mesNombre }} {{ $anio }}</div>
+                <div class="doctor-name"><i class="fas fa-user-md"></i> {{ $resumenMedico }}</div>
+                <span class="live-pill"><span class="live-dot"></span> Datos en vivo</span>
             </div>
         </div>
     </div>
 
     {{-- ================================================================
         FILTROS
-    ================================================================= --}}
-
-    <div class="card filter-card mb-4">
-        <div class="card-body">
-            <form method="GET" action="{{ route('dashboard') }}">
-                <div class="row">
-
-                    <div class="col-md-2 mb-3 mb-md-0">
-                        <label for="anio">
-                            Año
-                        </label>
-
-                        <input type="number" id="anio" name="anio" class="form-control" value="{{ $anio }}"
-                            min="2000" max="2100" required>
-                    </div>
-
-                    <div class="col-md-2 mb-3 mb-md-0">
-                        <label for="mes">
-                            Mes
-                        </label>
-
-                        <select id="mes" name="mes" class="form-control" required>
-                            @foreach ($meses as $numero => $nombre)
-                                <option value="{{ $numero }}" {{ (int) $mes === (int) $numero ? 'selected' : '' }}>
-                                    {{ $nombre }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="col-md-4 mb-3 mb-md-0">
-                        <label for="medico_id">
-                            Médico
-                        </label>
-
-                        <select id="medico_id" name="medico_id" class="form-control">
-                            <option value="">
-                                Todos los médicos
-                            </option>
-
-                            @foreach ($medicos as $medico)
-                                <option value="{{ $medico->id }}"
-                                    {{ (int) $medicoId === (int) $medico->id ? 'selected' : '' }}>
-                                    {{ $medico->nombre }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="col-md-2 mb-3 mb-md-0">
-                        <label for="meta_mensual">
-                            Meta mensual
-                        </label>
-
-                        <input type="number" id="meta_mensual" name="meta_mensual" class="form-control"
-                            value="{{ $metaMensual }}" min="0" placeholder="Opcional">
-                    </div>
-
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary btn-block btn-rounded">
-                            <i class="fas fa-search mr-1"></i>
-                            Consultar
-                        </button>
-                    </div>
-
+    ================================================================ --}}
+    <div class="filter-overlay">
+        <form method="GET" action="{{ route('dashboard') }}">
+            <div class="row align-items-end g-2">
+                <div class="col-md-2 col-6">
+                    <label for="anio">Año</label>
+                    <input type="number" id="anio" name="anio" class="form-control" value="{{ $anio }}"
+                        min="2000" max="2100" required>
                 </div>
-            </form>
+                <div class="col-md-2 col-6">
+                    <label for="mes">Mes</label>
+                    <select id="mes" name="mes" class="form-control" required>
+                        @foreach ($meses as $numero => $nombre)
+                            <option value="{{ $numero }}" {{ (int) $mes === (int) $numero ? 'selected' : '' }}>
+                                {{ $nombre }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3 col-6">
+                    <label for="medico_id">Médico</label>
+                    <select id="medico_id" name="medico_id" class="form-control">
+                        <option value="">Todos los médicos</option>
+                        @foreach ($medicos as $medico)
+                            <option value="{{ $medico->id }}"
+                                {{ (int) $medicoId === (int) $medico->id ? 'selected' : '' }}>{{ $medico->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2 col-6">
+                    <label for="meta_mensual">Meta mensual</label>
+                    <input type="number" id="meta_mensual" name="meta_mensual" class="form-control"
+                        value="{{ $metaMensual }}" min="0" placeholder="Opcional">
+                </div>
+                <div class="col-md-3 col-12">
+                    <button type="submit" class="btn btn-primary w-100 btn-rounded">
+                        <i class="fas fa-sync-alt mr-1"></i> Actualizar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {{-- ================================================================
+        INDICADORES ESTRATÉGICOS (4 KPIs)
+    ================================================================ --}}
+    <div class="row mt-4 g-3">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <div class="kpi-icon navy"><i class="fas fa-hospital-user"></i></div>
+                    <span class="kpi-badge">Mes actual</span>
+                </div>
+                <div class="kpi-label">Pacientes atendidos del mes</div>
+                <div class="kpi-value">{{ $fmt($totalMes) }}</div>
+                <div class="kpi-foot"><i class="fas fa-database mr-1"></i> Total oficial</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <div class="kpi-icon teal"><i class="fas fa-chart-line"></i></div>
+                    <span class="kpi-badge">Acumulado</span>
+                </div>
+                <div class="kpi-label">Pacientes atendidos del año</div>
+                <div class="kpi-value">{{ $fmt($totalAnio) }}</div>
+                <div class="kpi-foot">Promedio mensual: <strong>{{ $fmtDecimal($promedioMensual) }}</strong></div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <div class="kpi-icon gold"><i class="fas fa-chart-area"></i></div>
+                    <span class="kpi-badge">Estimación</span>
+                </div>
+                <div class="kpi-label">Proyección anual</div>
+                <div class="kpi-value">{{ $fmt($proyeccionAnual) }}</div>
+                <div class="kpi-foot">Cierre estimado según ritmo actual</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <div class="kpi-icon sky"><i class="fas fa-calendar-check"></i></div>
+                    <span class="kpi-badge {{ $estadoCobertura['clase'] }}">{{ $estadoCobertura['texto'] }}</span>
+                </div>
+                <div class="kpi-label">Cobertura del registro</div>
+                <div class="kpi-value">{{ $fmtDecimal($coberturaRegistro) }}%</div>
+                <div class="kpi-foot">{{ $diasConAtencion }} de {{ $diasLaborablesEvaluados }} días evaluados</div>
+            </div>
         </div>
     </div>
 
     {{-- ================================================================
-        INDICADORES PRINCIPALES
-    ================================================================= --}}
-
-    <div class="row">
-
-        {{-- Pacientes del mes --}}
-        <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
-            <div class="metric-card">
-                <div class="metric-icon icon-blue">
-                    <i class="fas fa-hospital-user"></i>
+        MÉTRICAS OPERATIVAS (6 KPIs)
+    ================================================================ --}}
+    <div class="row mt-3 g-3">
+        <div class="col-xl-2 col-lg-4 col-md-4 col-6">
+            <div class="kpi-card" style="min-height:120px;">
+                <div class="kpi-top">
+                    <div class="kpi-icon plum"><i class="fas fa-calendar-day"></i></div>
                 </div>
-
-                <div class="metric-label">
-                    Pacientes atendidos del mes
+                <div class="kpi-label">Promedio / día laborable</div>
+                <div class="kpi-value" style="font-size:1.8rem;">{{ $fmtDecimal($promedioDia) }}</div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-lg-4 col-md-4 col-6">
+            <div class="kpi-card" style="min-height:120px;">
+                <div class="kpi-top">
+                    <div class="kpi-icon coral"><i class="fas fa-calendar-alt"></i></div>
                 </div>
-
-                <div class="metric-value">
-                    {{ $fmt($totalMes) }}
+                <div class="kpi-label">Meses con actividad</div>
+                <div class="kpi-value" style="font-size:1.8rem;">{{ $mesesConMovimiento }} <span
+                        style="font-size:1rem;color:var(--text-muted);">/ {{ $mesesEvaluados }}</span></div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-lg-4 col-md-4 col-6">
+            <div class="kpi-card" style="min-height:120px;">
+                <div class="kpi-top">
+                    <div class="kpi-icon gold"><i class="fas fa-bullseye"></i></div>
                 </div>
-
-                <div class="metric-foot">
-                    <strong>Fuente:</strong>
-                    Total de Pacientes Atendidos
+                <div class="kpi-label">Proyección mensual</div>
+                <div class="kpi-value" style="font-size:1.8rem;">{{ $fmt($proyeccionMensual) }}</div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-lg-4 col-md-4 col-6">
+            <div class="kpi-card" style="min-height:120px;">
+                <div class="kpi-top">
+                    <div class="kpi-icon teal"><i class="fas fa-child"></i></div>
+                </div>
+                <div class="kpi-label">Menores de 5 años</div>
+                <div class="kpi-value" style="font-size:1.8rem;">{{ $fmt($totalMenoresCinco) }}</div>
+                <div class="kpi-foot" style="font-size:0.7rem;">{{ $fmtDecimal($porcentajeMenoresCinco) }}% del total
                 </div>
             </div>
         </div>
-
-        {{-- Pacientes del año --}}
-        <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
-            <div class="metric-card">
-                <div class="metric-icon icon-green">
-                    <i class="fas fa-chart-line"></i>
+        <div class="col-xl-2 col-lg-4 col-md-4 col-6">
+            <div class="kpi-card" style="min-height:120px;">
+                <div class="kpi-top">
+                    <div class="kpi-icon sky"><i class="fas fa-user-md"></i></div>
                 </div>
-
-                <div class="metric-label">
-                    Pacientes atendidos del año
-                </div>
-
-                <div class="metric-value">
-                    {{ $fmt($totalAnio) }}
-                </div>
-
-                <div class="metric-foot">
-                    Promedio mensual:
-                    <strong>{{ $fmtDecimal($promedioMensual) }}</strong>
-                </div>
+                <div class="kpi-label">Médico líder</div>
+                <div class="kpi-value" style="font-size:1.2rem;line-height:1.3;">
+                    {{ \Illuminate\Support\Str::limit($topMedicoNombre, 20) }}</div>
+                <div class="kpi-foot" style="font-size:0.7rem;">{{ $fmt($topMedicoTotal) }} pacientes ·
+                    {{ $fmtDecimal($participacionTopMedico) }}%</div>
             </div>
         </div>
-
-        {{-- Promedio laborable --}}
-        <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
-            <div class="metric-card">
-                <div class="metric-icon icon-orange">
-                    <i class="fas fa-calendar-day"></i>
+        <div class="col-xl-2 col-lg-4 col-md-4 col-6">
+            <div class="kpi-card" style="min-height:120px;">
+                <div class="kpi-top">
+                    <div class="kpi-icon coral"><i class="fas fa-exchange-alt"></i></div>
                 </div>
-
-                <div class="metric-label">
-                    Promedio por día laborable
-                </div>
-
-                <div class="metric-value">
-                    {{ $fmtDecimal($promedioDia) }}
-                </div>
-
-                <div class="metric-foot">
-                    {{ $diasLaborablesEvaluados }}
-                    días laborables evaluados
-                </div>
-            </div>
-        </div>
-
-        {{-- Cobertura --}}
-        <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
-            <div class="metric-card">
-                <div class="metric-icon icon-purple">
-                    <i class="fas fa-calendar-check"></i>
-                </div>
-
-                <div class="metric-label">
-                    Cobertura del registro
-                </div>
-
-                <div class="metric-value">
-                    {{ $fmtDecimal($coberturaRegistro) }}%
-                </div>
-
-                <div class="metric-foot">
-                    {{ $diasConAtencion }}
-                    de
-                    {{ $diasLaborablesEvaluados }}
-                    días evaluados
-
-                    <span class="status-badge {{ $estadoCobertura['clase'] }} ml-1">
-                        {{ $estadoCobertura['texto'] }}
-                    </span>
-                </div>
-            </div>
-        </div>
-
-        {{-- Proyección mensual --}}
-        <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
-            <div class="metric-card">
-                <div class="metric-icon icon-cyan">
-                    <i class="fas fa-bullseye"></i>
-                </div>
-
-                <div class="metric-label">
-                    Proyección al cierre del mes
-                </div>
-
-                <div class="metric-value">
-                    {{ $fmt($proyeccionMensual) }}
-                </div>
-
-                <div class="metric-foot">
-                    Proyección para
-                    {{ $diasLaborablesMes }}
-                    días laborables
-                </div>
-            </div>
-        </div>
-
-        {{-- Menores de cinco años --}}
-        <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
-            <div class="metric-card">
-                <div class="metric-icon icon-teal">
-                    <i class="fas fa-child"></i>
-                </div>
-
-                <div class="metric-label">
-                    Menores de cinco años
-                </div>
-
-                <div class="metric-value">
-                    {{ $fmt($totalMenoresCinco) }}
-                </div>
-
-                <div class="metric-foot">
-                    {{ $fmtDecimal($porcentajeMenoresCinco) }}%
-                    del total mensual
-                </div>
-            </div>
-        </div>
-
-        {{-- Médico líder --}}
-        <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
-            <div class="metric-card">
-                <div class="metric-icon icon-red">
-                    <i class="fas fa-user-md"></i>
-                </div>
-
-                <div class="metric-label">
-                    Médico con mayor atención
-                </div>
-
-                <div class="metric-value metric-value-name">
-                    {{ \Illuminate\Support\Str::limit($topMedicoNombre, 25) }}
-                </div>
-
-                <div class="metric-foot">
-                    {{ $fmt($topMedicoTotal) }}
-                    pacientes ·
-                    {{ $fmtDecimal($participacionTopMedico) }}%
-                    del total
-                </div>
-            </div>
-        </div>
-
-        {{-- Variación mensual --}}
-        <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
-            <div class="metric-card">
-                <div class="metric-icon icon-yellow">
-                    <i class="fas fa-exchange-alt"></i>
-                </div>
-
-                <div class="metric-label">
-                    Variación mensual
-                </div>
-
-                <div class="metric-value">
+                <div class="kpi-label">Variación mensual</div>
+                <div class="kpi-value {{ $estadoVariacion['clase'] }}" style="font-size:1.8rem;">
                     @if (!is_null($variacionMes))
-                        {{ $variacionMes > 0 ? '+' : '' }}
-                        {{ $fmtDecimal($variacionMes) }}%
+                        <i class="fas {{ $estadoVariacion['icono'] }} mr-1"></i>
+                        {{ $variacionMes > 0 ? '+' : '' }}{{ $fmtDecimal($variacionMes) }}%
                     @else
                         N/D
                     @endif
                 </div>
-
-                <div class="metric-foot {{ $estadoVariacion['clase'] }}">
-                    <i class="fas {{ $estadoVariacion['icono'] }} mr-1"></i>
-                    {{ $estadoVariacion['texto'] }}
-                    respecto al mes anterior
-                </div>
+                <div class="kpi-foot" style="font-size:0.7rem;">{{ $estadoVariacion['texto'] }}</div>
             </div>
         </div>
-
     </div>
 
     {{-- ================================================================
-        ALERTAS DE CALIDAD DE DATOS
-    ================================================================= --}}
-
+        ALERTAS DE CALIDAD
+    ================================================================ --}}
     @if ($diasSinRegistro > 0 || $registrosFinSemana > 0)
-        <div class="row mb-4">
-
+        <div class="row mt-3 g-3">
             @if ($diasSinRegistro > 0)
-                <div class="col-md-6 mb-3 mb-md-0">
-                    <div class="alert alert-warning quality-alert">
-                        <div class="d-flex">
-                            <div class="mr-3">
-                                <i class="fas fa-calendar-times fa-2x"></i>
-                            </div>
-
-                            <div>
-                                <strong>
-                                    Días laborables sin registro
-                                </strong>
-
-                                <div>
-                                    Se identificaron
-                                    <strong>{{ $diasSinRegistro }}</strong>
-                                    días laborables sin pacientes atendidos.
-                                </div>
-
-                                <small>
-                                    Debe validarse si corresponde a falta de atención,
-                                    ausencia del médico o registro pendiente.
-                                </small>
-                            </div>
+                <div class="col-md-6">
+                    <div class="alert-quality d-flex align-items-center">
+                        <div class="alert-icon"><i class="fas fa-calendar-times"></i></div>
+                        <div>
+                            <strong>Días laborables sin registro</strong>
+                            <span>Se identificaron {{ $diasSinRegistro }} días laborables sin pacientes
+                                atendidos.</span>
                         </div>
                     </div>
                 </div>
             @endif
 
-
-
         </div>
     @endif
 
     {{-- ================================================================
-        CUMPLIMIENTO DE META
-    ================================================================= --}}
-
+        META MENSUAL
+    ================================================================ --}}
     @if (!is_null($cumplimientoMeta))
-        <div class="card decision-card mb-4">
-            <div class="card-body">
-
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <strong>
-                        <i class="fas fa-bullseye text-primary mr-1"></i>
-                        Cumplimiento de meta mensual
-                    </strong>
-
-                    <span class="font-weight-bold">
-                        {{ $fmtDecimal($cumplimientoMeta) }}%
-                    </span>
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="meta-progress">
+                    <div class="meta-header">
+                        <span class="meta-label"><i class="fas fa-bullseye text-primary mr-1"></i> Cumplimiento de meta
+                            mensual</span>
+                        <span class="meta-percent">{{ $fmtDecimal($cumplimientoMeta) }}%</span>
+                    </div>
+                    <div class="progress-bar-premium">
+                        <div class="bar-fill" style="width: {{ min($cumplimientoMeta, 100) }}%;"></div>
+                    </div>
+                    <div class="meta-details">
+                        <span>Meta: <strong>{{ $fmt($metaMensual) }}</strong> pacientes</span>
+                        <span>Actual: <strong>{{ $fmt($totalMes) }}</strong> pacientes</span>
+                        @if ($faltanteMeta > 0)
+                            <span class="text-danger">Faltan: <strong>{{ $fmt($faltanteMeta) }}</strong> pacientes</span>
+                        @else
+                            <span class="text-success"><strong>¡Meta alcanzada!</strong></span>
+                        @endif
+                    </div>
                 </div>
-
-                <div class="progress progress-thin">
-                    <div class="progress-bar {{ $cumplimientoMeta >= 100 ? 'bg-success' : 'bg-primary' }}"
-                        role="progressbar" style="width: {{ min($cumplimientoMeta, 100) }}%"
-                        aria-valuenow="{{ min($cumplimientoMeta, 100) }}" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
-
-                <div class="d-flex justify-content-between flex-wrap mt-2">
-                    <small class="text-muted">
-                        Meta:
-                        <strong>{{ $fmt($metaMensual) }}</strong>
-                        pacientes
-                    </small>
-
-                    <small class="text-muted">
-                        Actual:
-                        <strong>{{ $fmt($totalMes) }}</strong>
-                        pacientes
-                    </small>
-
-                    @if ($faltanteMeta > 0)
-                        <small class="text-danger">
-                            Faltan:
-                            <strong>{{ $fmt($faltanteMeta) }}</strong>
-                            pacientes
-                        </small>
-                    @else
-                        <small class="text-success">
-                            <strong>Meta alcanzada</strong>
-                        </small>
-                    @endif
-                </div>
-
             </div>
         </div>
     @endif
 
     {{-- ================================================================
-        TENDENCIA ANUAL Y LECTURA EJECUTIVA
-    ================================================================= --}}
-
-    <div class="row">
-
-        <div class="col-lg-8 mb-4">
-            <div class="card decision-card h-100">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h3 class="card-title font-weight-bold mb-0">
-                                Tendencia anual de pacientes
-                            </h3>
-
-                            <small class="text-muted">
-                                Total mensual del indicador oficial durante {{ $anio }}
-                            </small>
-                        </div>
-
-                        <i class="fas fa-chart-area text-primary"></i>
+        GRÁFICAS Y LECTURA EJECUTIVA
+    ================================================================ --}}
+    <div class="row mt-4 g-3">
+        {{-- Tendencia anual --}}
+        <div class="col-lg-8">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div>
+                        <div class="chart-title">Tendencia anual de pacientes</div>
+                        <div class="chart-subtitle">Total mensual durante {{ $anio }}</div>
                     </div>
+                    <i class="fas fa-chart-area" style="color:var(--accent-teal);font-size:1.4rem;"></i>
                 </div>
-
-                <div class="card-body">
-                    <div class="chart-box">
-                        <canvas id="chartMeses"></canvas>
-                    </div>
+                <div class="chart-box">
+                    <canvas id="chartMeses"></canvas>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-4 mb-4">
-
-            <div class="card decision-card">
-                <div class="card-header">
-                    <h3 class="card-title font-weight-bold mb-0">
-                        Lectura ejecutiva
-                    </h3>
-                </div>
-
-                <div class="card-body">
-                    @if (count($lecturaEjecutiva) > 0)
-                        <ul class="decision-list">
-                            @foreach ($lecturaEjecutiva as $lectura)
-                                <li>
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>{{ $lectura }}</span>
-                                </li>
-                            @endforeach
-                        </ul>
-                    @else
-                        <div class="text-center text-muted py-4">
-                            <i class="fas fa-info-circle fa-2x mb-2"></i>
-
-                            <div>
-                                No existen observaciones para el periodo.
-                            </div>
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            <div class="card decision-card mt-4">
-                <div class="card-header">
-                    <h3 class="card-title font-weight-bold mb-0">
-                        Hitos del periodo
-                    </h3>
-                </div>
-
-                <div class="card-body">
-
-                    <div class="indicator-row">
-                        <div>
-                            <div class="indicator-title">
-                                Mes de mayor atención
-                            </div>
-
-                            <strong>
-                                {{ $mejorMes['nombre'] ?? '-' }}
-                            </strong>
-                        </div>
-
-                        <div class="indicator-value">
-                            {{ $fmt($mejorMes['total'] ?? 0) }}
-                        </div>
+        {{-- Lectura ejecutiva e hitos --}}
+        <div class="col-lg-4">
+            <div class="executive-card">
+                <div class="exec-title"><i class="fas fa-clipboard-list mr-2" style="color:var(--accent-teal);"></i>
+                    Lectura ejecutiva &amp; hitos</div>
+                @if (count($lecturaEjecutiva) > 0)
+                    <ul class="executive-list">
+                        @foreach ($lecturaEjecutiva as $lectura)
+                            <li><i class="fas fa-check-circle"></i> {{ $lectura }}</li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p class="text-muted text-center py-2">Sin observaciones para el periodo.</p>
+                @endif
+                <hr style="margin:12px 0;">
+                <div>
+                    <div class="milestone-row">
+                        <span class="milestone-label">Mes de mayor atención</span>
+                        <span class="milestone-value">{{ $mejorMes['nombre'] ?? '-' }}
+                            ({{ $fmt($mejorMes['total'] ?? 0) }})</span>
                     </div>
-
-                    <div class="indicator-row">
-                        <div>
-                            <div class="indicator-title">
-                                Día laborable de mayor carga
-                            </div>
-
-                            <strong>
-                                Día {{ $mejorDia['dia'] ?? '-' }}
-                            </strong>
-                        </div>
-
-                        <div class="indicator-value">
-                            {{ $fmt($mejorDia['total'] ?? 0) }}
-                        </div>
+                    <div class="milestone-row">
+                        <span class="milestone-label">Día laborable de mayor carga</span>
+                        <span class="milestone-value">Día {{ $mejorDia['dia'] ?? '-' }}
+                            ({{ $fmt($mejorDia['total'] ?? 0) }})</span>
                     </div>
-
-                    <div class="indicator-row">
-                        <div>
-                            <div class="indicator-title">
-                                Promedio en días con actividad
-                            </div>
-
-                            <strong>
-                                Pacientes por jornada activa
-                            </strong>
-                        </div>
-
-                        <div class="indicator-value">
-                            {{ $fmtDecimal($promedioPorDiaConActividad) }}
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-
-    {{-- ================================================================
-        INDICADORES DE SALUD Y OPERACIÓN
-    ================================================================= --}}
-
-    <div class="card decision-card mb-4">
-        <div class="card-header">
-            <div>
-                <h3 class="card-title font-weight-bold mb-0">
-                    Indicadores operativos y de atención
-                </h3>
-
-                <small class="text-muted">
-                    Resumen mensual para seguimiento de productividad y cobertura
-                </small>
-            </div>
-        </div>
-
-        <div class="card-body">
-            <div class="row">
-
-                <div class="col-lg-3 col-md-6 mb-3">
-                    <div class="health-stat">
-                        <div class="health-stat-title">
-                            Días laborables del mes
-                        </div>
-
-                        <div class="health-stat-value">
-                            {{ $diasLaborablesMes }}
-                        </div>
-
-                        <div class="health-stat-foot">
-                            Jornada institucional estimada
-                        </div>
+                    <div class="milestone-row">
+                        <span class="milestone-label">Promedio en días activos</span>
+                        <span class="milestone-value">{{ $fmtDecimal($promedioPorDiaConActividad) }}</span>
                     </div>
                 </div>
-
-                <div class="col-lg-3 col-md-6 mb-3">
-                    <div class="health-stat">
-                        <div class="health-stat-title">
-                            Días con atención
-                        </div>
-
-                        <div class="health-stat-value">
-                            {{ $diasConAtencion }}
-                        </div>
-
-                        <div class="health-stat-foot">
-                            Días con pacientes mayores que cero
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-6 mb-3">
-                    <div class="health-stat">
-                        <div class="health-stat-title">
-                            Productividad proyectada
-                        </div>
-
-                        <div class="health-stat-value">
-                            {{ $fmtDecimal($productividadEsperada) }}
-                        </div>
-
-                        <div class="health-stat-foot">
-                            Pacientes por día laborable
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-6 mb-3">
-                    <div class="health-stat">
-                        <div class="health-stat-title">
-                            Participación menores de 5
-                        </div>
-
-                        <div class="health-stat-value">
-                            {{ $fmtDecimal($porcentajeMenoresCinco) }}%
-                        </div>
-
-                        <div class="health-stat-foot">
-                            Sobre pacientes atendidos del mes
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
     </div>
 
     {{-- ================================================================
         ACTIVIDAD DIARIA Y TOP CONCEPTOS
-    ================================================================= --}}
-
-    <div class="row">
-
-        <div class="col-lg-8 mb-4">
-            <div class="card decision-card h-100">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h3 class="card-title font-weight-bold mb-0">
-                                Pacientes por día laborable
-                            </h3>
-
-                            <small class="text-muted">
-                                Actividad diaria de {{ $mesNombre }}.
-                                Sábados y domingos no se incluyen.
-                            </small>
-                        </div>
-
-                        <i class="fas fa-calendar-day text-primary"></i>
-                    </div>
-                </div>
-
-                <div class="card-body">
-                    <div class="chart-box">
-                        <canvas id="chartDias"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4 mb-4">
-            <div class="card decision-card h-100">
-                <div class="card-header">
-                    <h3 class="card-title font-weight-bold mb-0">
-                        Principales servicios registrados
-                    </h3>
-
-                    <small class="text-muted">
-                        Excluye las filas automáticas 19 y 44
-                    </small>
-                </div>
-
-                <div class="card-body">
-                    <div class="chart-box-sm">
-                        <canvas id="chartConceptos"></canvas>
-                    </div>
-
-                    <hr>
-
+    ================================================================ --}}
+    <div class="row mt-3 g-3">
+        <div class="col-lg-8">
+            <div class="chart-card">
+                <div class="chart-header">
                     <div>
-                        <span class="status-badge badge-soft-primary">
-                            Principal concepto
-                        </span>
+                        <div class="chart-title">Pacientes por día laborable</div>
+                        <div class="chart-subtitle">Actividad diaria de {{ $mesNombre }}. (Sábados y domingos
+                            excluidos)</div>
                     </div>
-
-                    <strong class="d-block mt-2">
-                        {{ $topConceptoNombre }}
-                    </strong>
-
-                    <div class="text-muted">
-                        Orden:
-                        {{ $topConceptoCodigo }}
-
-                        ·
-
-                        {{ $fmt($topConceptoTotal) }}
-                        registros
-
-                        ·
-
-                        {{ $fmtDecimal($participacionTopConcepto) }}%
-                    </div>
+                    <i class="fas fa-calendar-day" style="color:var(--accent-plum);font-size:1.4rem;"></i>
+                </div>
+                <div class="chart-box">
+                    <canvas id="chartDias"></canvas>
                 </div>
             </div>
         </div>
-
+        <div class="col-lg-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div>
+                        <div class="chart-title">Principales servicios</div>
+                        <div class="chart-subtitle">Excluye filas automáticas 19 y 44</div>
+                    </div>
+                    <i class="fas fa-clipboard-list" style="color:var(--accent-gold);font-size:1.4rem;"></i>
+                </div>
+                <div class="chart-box-sm">
+                    <canvas id="chartConceptos"></canvas>
+                </div>
+                <div style="margin-top:8px;font-size:0.85rem;">
+                    <span class="badge" style="background:var(--accent-gold);color:#fff;">Principal</span>
+                    <strong>{{ $topConceptoNombre }}</strong>
+                    <span class="text-muted">· {{ $topConceptoCodigo }} · {{ $fmt($topConceptoTotal) }} registros ·
+                        {{ $fmtDecimal($participacionTopConcepto) }}%</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     {{-- ================================================================
-        TOP MÉDICOS
-    ================================================================= --}}
-
-    <div class="row">
-
-        <div class="col-lg-7 mb-4">
-            <div class="card decision-card h-100">
-                <div class="card-header">
-                    <h3 class="card-title font-weight-bold mb-0">
-                        Distribución de pacientes por médico
-                    </h3>
-
-                    <small class="text-muted">
-                        Calculado únicamente con Total de Pacientes Atendidos
-                    </small>
-                </div>
-
-                <div class="card-body">
-                    <div class="chart-box">
-                        <canvas id="chartMedicos"></canvas>
+        DISTRIBUCIÓN POR MÉDICO Y RESUMEN DEL LÍDER
+    ================================================================ --}}
+    <div class="row mt-3 g-3">
+        <div class="col-lg-7">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div>
+                        <div class="chart-title">Distribución de pacientes por médico</div>
+                        <div class="chart-subtitle">Volumen de atención en el periodo</div>
                     </div>
+                    <i class="fas fa-user-md" style="color:var(--accent-coral);font-size:1.4rem;"></i>
+                </div>
+                <div class="chart-box">
+                    <canvas id="chartMedicos"></canvas>
                 </div>
             </div>
         </div>
-
-        <div class="col-lg-5 mb-4">
-            <div class="card decision-card h-100">
-                <div class="card-header">
-                    <h3 class="card-title font-weight-bold mb-0">
-                        Resumen del médico líder
-                    </h3>
+        <div class="col-lg-5">
+            <div class="executive-card">
+                <div class="exec-title"><i class="fas fa-trophy mr-2" style="color:var(--accent-gold);"></i> Médico líder
+                    del mes</div>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="kpi-icon plum" style="margin-right:14px;"><i class="fas fa-user-md"></i></div>
+                    <div>
+                        <div class="kpi-label" style="font-size:0.65rem;">Mayor volumen</div>
+                        <strong style="font-size:1.2rem;">{{ $topMedicoNombre }}</strong>
+                        <div class="text-muted" style="font-size:0.9rem;">{{ $fmt($topMedicoTotal) }} pacientes atendidos
+                        </div>
+                    </div>
+                </div>
+                <div class="milestone-row">
+                    <span class="milestone-label">Participación del total mensual</span>
+                    <span class="milestone-value">{{ $fmtDecimal($participacionTopMedico) }}%</span>
+                </div>
+                <div class="milestone-row">
+                    <span class="milestone-label">Total institucional del mes</span>
+                    <span class="milestone-value">{{ $fmt($totalMes) }}</span>
+                </div>
+                <div class="milestone-row">
+                    <span class="milestone-label">Diferencia frente al total</span>
+                    <span class="milestone-value">{{ $fmt(max(0, $totalMes - $topMedicoTotal)) }}</span>
                 </div>
 
-                <div class="card-body">
-
-                    <div class="d-flex align-items-center mb-4">
-                        <div class="metric-icon icon-purple mb-0 mr-3">
-                            <i class="fas fa-user-md"></i>
-                        </div>
-
-                        <div>
-                            <div class="metric-label">
-                                Médico con mayor volumen
-                            </div>
-
-                            <strong class="d-block">
-                                {{ $topMedicoNombre }}
-                            </strong>
-
-                            <span class="text-muted">
-                                {{ $fmt($topMedicoTotal) }}
-                                pacientes atendidos
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="indicator-row">
-                        <div class="indicator-title">
-                            Participación del total mensual
-                        </div>
-
-                        <div class="indicator-value">
-                            {{ $fmtDecimal($participacionTopMedico) }}%
-                        </div>
-                    </div>
-
-                    <div class="indicator-row">
-                        <div class="indicator-title">
-                            Total institucional del mes
-                        </div>
-
-                        <div class="indicator-value">
-                            {{ $fmt($totalMes) }}
-                        </div>
-                    </div>
-
-                    <div class="indicator-row">
-                        <div class="indicator-title">
-                            Diferencia frente al total institucional
-                        </div>
-
-                        <div class="indicator-value">
-                            {{ $fmt(max(0, $totalMes - $topMedicoTotal)) }}
-                        </div>
-                    </div>
-
-                </div>
             </div>
         </div>
-
     </div>
-
+    <div class="mt-4 pt-3" style="border-top:1px solid rgba(10,38,71,0.08);">
+        <div class="d-flex justify-content-center">
+            <div class="px-4 py-2 text-center"
+                style="border-radius:14px;background:linear-gradient(135deg, rgba(10,38,71,0.06), rgba(91,33,182,0.05));box-shadow:0 6px 18px rgba(10,38,71,0.06);">
+                <div style="font-size:0.72rem;letter-spacing:.08em;text-transform:uppercase;color:#6B7F8D;">
+                    Desarrollado por
+                </div>
+                <div style="font-size:0.95rem;font-weight:700;color:#0A2647;line-height:1.2;">
+                    Jose Hernandez
+                </div>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('js')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Datos desde PHP
             const mesesLabels = @json($chartMesesLabels ?? []);
             const datosMeses = @json($chartMesesData ?? []);
-
             const diasLabels = @json($chartDiasLabels ?? []);
             const datosDias = @json($chartDiasData ?? []);
-
             const conceptosLabels = @json($chartConceptosLabels ?? []);
             const conceptosData = @json($chartConceptosData ?? []);
-
             const medicosLabels = @json($chartMedicosLabels ?? []);
             const medicosData = @json($chartMedicosData ?? []);
 
-            Chart.defaults.font.family =
-                "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+            // Registro global del plugin datalabels
+            Chart.register(ChartDataLabels);
 
-            Chart.defaults.color = '#5C6B78';
+            // Configuración global
+            Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+            Chart.defaults.color = '#6B7F8D';
 
-            const gridColor = 'rgba(11, 59, 92, .10)';
+            const gridColor = 'rgba(10, 38, 71, 0.06)';
 
-            function formatoNumero(valor) {
-                return new Intl.NumberFormat('es-HN').format(valor || 0);
+            function fmt(val) {
+                return new Intl.NumberFormat('es-HN').format(val || 0);
             }
 
-            function crearGradiente(ctx, colorInicio, colorFinal) {
-                const gradient = ctx.createLinearGradient(0, 0, 0, 330);
-
-                gradient.addColorStop(0, colorInicio);
-                gradient.addColorStop(1, colorFinal);
-
-                return gradient;
+            function gradiente(ctx, color1, color2) {
+                const g = ctx.createLinearGradient(0, 0, 0, 280);
+                g.addColorStop(0, color1);
+                g.addColorStop(1, color2);
+                return g;
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Tendencia anual
-            |--------------------------------------------------------------------------
-            */
-
-            const canvasMeses = document.getElementById('chartMeses');
-
-            if (canvasMeses) {
-                const ctxMeses = canvasMeses.getContext('2d');
-
-                new Chart(canvasMeses, {
+            // ---- Tendencia anual ----
+            const ctxMeses = document.getElementById('chartMeses')?.getContext('2d');
+            if (ctxMeses) {
+                new Chart(ctxMeses, {
                     type: 'line',
-
                     data: {
                         labels: mesesLabels,
-
                         datasets: [{
-                            label: 'Pacientes atendidos',
+                            label: 'Pacientes',
                             data: datosMeses,
-                            borderColor: '#1E8A75',
-                            backgroundColor: crearGradiente(
-                                ctxMeses,
-                                'rgba(30, 138, 117, .30)',
-                                'rgba(30, 138, 117, .02)'
-                            ),
-                            pointBackgroundColor: '#1E8A75',
-                            pointBorderColor: '#ffffff',
+                            borderColor: '#0F9D8A',
+                            backgroundColor: gradiente(ctxMeses, 'rgba(15,157,138,0.25)',
+                                'rgba(15,157,138,0.01)'),
+                            pointBackgroundColor: '#0F9D8A',
+                            pointBorderColor: '#fff',
                             pointBorderWidth: 2,
-                            pointRadius: 4,
+                            pointRadius: 3.5,
                             pointHoverRadius: 6,
                             borderWidth: 3,
-                            tension: .35,
+                            tension: 0.35,
                             fill: true
                         }]
                     },
-
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-
-                        interaction: {
-                            mode: 'index',
-                            intersect: false
-                        },
-
                         plugins: {
                             legend: {
                                 display: false
                             },
-
                             tooltip: {
                                 callbacks: {
-                                    label: function(context) {
-                                        return 'Pacientes: ' +
-                                            formatoNumero(context.raw);
-                                    }
+                                    label: ctx => 'Pacientes: ' + fmt(ctx.raw)
                                 }
+                            },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                color: '#0A2647',
+                                font: {
+                                    weight: 'bold',
+                                    size: 9
+                                },
+                                formatter: v => fmt(v),
+                                offset: 2
                             }
                         },
-
                         scales: {
                             x: {
                                 grid: {
                                     display: false
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Meses del año',
+                                    color: '#6B7F8D',
+                                    font: {
+                                        weight: 'bold',
+                                        size: 10
+                                    }
                                 }
                             },
-
                             y: {
                                 beginAtZero: true,
-
                                 ticks: {
                                     precision: 0,
-
-                                    callback: function(value) {
-                                        return formatoNumero(value);
-                                    }
+                                    callback: v => fmt(v)
                                 },
-
                                 grid: {
                                     color: gridColor
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Pacientes atendidos',
+                                    color: '#6B7F8D',
+                                    font: {
+                                        weight: 'bold',
+                                        size: 10
+                                    }
                                 }
                             }
                         }
@@ -1729,90 +1235,80 @@
                 });
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Actividad diaria
-            |--------------------------------------------------------------------------
-            */
-
-            const canvasDias = document.getElementById('chartDias');
-
-            if (canvasDias) {
-                new Chart(canvasDias, {
+            // ---- Actividad diaria ----
+            const ctxDias = document.getElementById('chartDias')?.getContext('2d');
+            if (ctxDias) {
+                new Chart(ctxDias, {
                     type: 'bar',
-
                     data: {
                         labels: diasLabels,
-
                         datasets: [{
-                            label: 'Pacientes por día',
+                            label: 'Pacientes',
                             data: datosDias,
-                            backgroundColor: 'rgba(11, 59, 92, .78)',
-                            borderColor: '#0B3B5C',
+                            backgroundColor: 'rgba(10, 38, 71, 0.75)',
+                            borderColor: '#0A2647',
                             borderWidth: 1,
-                            borderRadius: 7,
-                            maxBarThickness: 26
+                            borderRadius: 6,
+                            maxBarThickness: 28
                         }]
                     },
-
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-
-                        interaction: {
-                            mode: 'index',
-                            intersect: false
-                        },
-
                         plugins: {
                             legend: {
                                 display: false
                             },
-
                             tooltip: {
                                 callbacks: {
-                                    title: function(items) {
-                                        return 'Día ' + items[0].label;
-                                    },
-
-                                    label: function(context) {
-                                        return 'Pacientes: ' +
-                                            formatoNumero(context.raw);
-                                    }
-                                }
-                            }
-                        },
-
-                        scales: {
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Día laborable del mes'
-                                },
-
-                                grid: {
-                                    display: false
+                                    title: items => 'Día ' + items[0].label,
+                                    label: ctx => 'Pacientes: ' + fmt(ctx.raw)
                                 }
                             },
-
-                            y: {
-                                beginAtZero: true,
-
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                color: '#0A2647',
+                                font: {
+                                    weight: 'bold',
+                                    size: 9
+                                },
+                                formatter: v => fmt(v),
+                                offset: 2
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false
+                                },
                                 title: {
                                     display: true,
-                                    text: 'Pacientes'
-                                },
-
+                                    text: 'Día laborable del mes',
+                                    color: '#6B7F8D',
+                                    font: {
+                                        weight: 'bold',
+                                        size: 10
+                                    }
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
                                 ticks: {
                                     precision: 0,
-
-                                    callback: function(value) {
-                                        return formatoNumero(value);
-                                    }
+                                    callback: v => fmt(v)
                                 },
-
                                 grid: {
                                     color: gridColor
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Pacientes',
+                                    color: '#6B7F8D',
+                                    font: {
+                                        weight: 'bold',
+                                        size: 10
+                                    }
                                 }
                             }
                         }
@@ -1820,78 +1316,76 @@
                 });
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Top conceptos
-            |--------------------------------------------------------------------------
-            */
-
-            const canvasConceptos = document.getElementById('chartConceptos');
-
-            if (canvasConceptos) {
-                new Chart(canvasConceptos, {
+            // ---- Top conceptos ----
+            const ctxConceptos = document.getElementById('chartConceptos')?.getContext('2d');
+            if (ctxConceptos) {
+                new Chart(ctxConceptos, {
                     type: 'bar',
-
                     data: {
                         labels: conceptosLabels,
-
                         datasets: [{
                             label: 'Registros',
                             data: conceptosData,
-                            backgroundColor: 'rgba(185, 130, 30, .75)',
-                            borderColor: '#B9821E',
+                            backgroundColor: 'rgba(200, 155, 60, 0.75)',
+                            borderColor: '#C89B3C',
                             borderWidth: 1,
-                            borderRadius: 7,
-                            maxBarThickness: 23
+                            borderRadius: 6,
+                            maxBarThickness: 22
                         }]
                     },
-
                     options: {
                         indexAxis: 'y',
                         responsive: true,
                         maintainAspectRatio: false,
-
                         plugins: {
                             legend: {
                                 display: false
                             },
-
                             tooltip: {
                                 callbacks: {
-                                    label: function(context) {
-                                        return 'Registros: ' +
-                                            formatoNumero(context.raw);
-                                    }
+                                    label: ctx => 'Registros: ' + fmt(ctx.raw)
                                 }
+                            },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'right',
+                                color: '#0A2647',
+                                font: {
+                                    weight: 'bold',
+                                    size: 9
+                                },
+                                formatter: v => fmt(v),
+                                offset: 2
                             }
                         },
-
                         scales: {
                             x: {
                                 beginAtZero: true,
-
                                 ticks: {
                                     precision: 0,
-
-                                    callback: function(value) {
-                                        return formatoNumero(value);
-                                    }
+                                    callback: v => fmt(v)
                                 },
-
                                 grid: {
                                     color: gridColor
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Registros',
+                                    color: '#6B7F8D',
+                                    font: {
+                                        weight: 'bold',
+                                        size: 10
+                                    }
                                 }
                             },
-
                             y: {
                                 grid: {
                                     display: false
                                 },
-
                                 ticks: {
                                     autoSkip: false,
                                     font: {
-                                        size: 11
+                                        size: 10
                                     }
                                 }
                             }
@@ -1900,74 +1394,68 @@
                 });
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Ranking de médicos
-            |--------------------------------------------------------------------------
-            */
-
-            const canvasMedicos = document.getElementById('chartMedicos');
-
-            if (canvasMedicos) {
-                new Chart(canvasMedicos, {
+            // ---- Ranking médicos ----
+            const ctxMedicos = document.getElementById('chartMedicos')?.getContext('2d');
+            if (ctxMedicos) {
+                new Chart(ctxMedicos, {
                     type: 'bar',
-
                     data: {
                         labels: medicosLabels,
-
                         datasets: [{
-                            label: 'Pacientes atendidos',
+                            label: 'Pacientes',
                             data: medicosData,
-                            backgroundColor: 'rgba(109, 74, 166, .75)',
-                            borderColor: '#6D4AA6',
+                            backgroundColor: 'rgba(123, 94, 167, 0.75)',
+                            borderColor: '#7B5EA7',
                             borderWidth: 1,
-                            borderRadius: 7,
-                            maxBarThickness: 35
+                            borderRadius: 6,
+                            maxBarThickness: 32
                         }]
                     },
-
                     options: {
                         indexAxis: 'y',
                         responsive: true,
                         maintainAspectRatio: false,
-
                         plugins: {
                             legend: {
                                 display: false
                             },
-
                             tooltip: {
                                 callbacks: {
-                                    label: function(context) {
-                                        return 'Pacientes: ' +
-                                            formatoNumero(context.raw);
-                                    }
+                                    label: ctx => 'Pacientes: ' + fmt(ctx.raw)
                                 }
+                            },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'right',
+                                color: '#0A2647',
+                                font: {
+                                    weight: 'bold',
+                                    size: 9
+                                },
+                                formatter: v => fmt(v),
+                                offset: 2
                             }
                         },
-
                         scales: {
                             x: {
                                 beginAtZero: true,
-
-                                title: {
-                                    display: true,
-                                    text: 'Pacientes atendidos'
-                                },
-
                                 ticks: {
                                     precision: 0,
-
-                                    callback: function(value) {
-                                        return formatoNumero(value);
-                                    }
+                                    callback: v => fmt(v)
                                 },
-
                                 grid: {
                                     color: gridColor
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Pacientes atendidos',
+                                    color: '#6B7F8D',
+                                    font: {
+                                        weight: 'bold',
+                                        size: 10
+                                    }
                                 }
                             },
-
                             y: {
                                 grid: {
                                     display: false
